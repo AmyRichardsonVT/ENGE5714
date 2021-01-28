@@ -44,4 +44,5 @@ VApublic <- read.csv("Copy of Free Reduced Lunch.csv", header = TRUE)
 FRL <- select(VApublic, "div_name", starts_with("totalper_"))  
 mutate(FRL, )
 
+#this is still terrible
 
