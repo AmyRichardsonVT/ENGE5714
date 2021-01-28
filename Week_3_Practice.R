@@ -44,5 +44,8 @@ VApublic <- read.csv("Copy of Free Reduced Lunch.csv", header = TRUE)
 FRL <- select(VApublic, "div_name", starts_with("totalper_"))  
 mutate(FRL, )
 
+by_county <- group_by(FRL, div_name)
+
+data.frame(apply(by_county[-1], 2, function(x) as.numeric(sub("%","",as.character(x)))))
 #this is still terrible
 
