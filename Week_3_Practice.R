@@ -40,12 +40,39 @@ plot + geom_point(aes(color = job_text)) +
   labs(x = "Neuroticism", y = "Alcohol Consumption", color = "job_text")
 
 #Finishing Classwork - Which county has the highest percentage of students on free and reduced lunch?  The lowest?
+# install necessary packages
+install.packages("tidyverse")
+install.packages("tidyr")
+library(tidyverse)
+library(tidyr)
+
+# read dataset in
 VApublic <- read.csv("Copy of Free Reduced Lunch.csv", header = TRUE)
+
+# create DF with salient columns
 FRL <- select(VApublic, "div_name", starts_with("totalper_"))  
-mutate(FRL, )
 
-by_county <- group_by(FRL, div_name)
+# convert character percentage columns to numeric columns, replace columns in original DF
+by_county[-1] <- data.frame(apply(by_county[-1], 2, function(x) as.numeric(sub("%","",as.character(x)))))
 
-data.frame(apply(by_county[-1], 2, function(x) as.numeric(sub("%","",as.character(x)))))
-#this is still terrible
+# some columns have percentages < 0, replace them with NA
+by_county[by_county < 0] <- NA
+
+# aggregate by county and calcualte mean for each column/year
+by_county_agg <- aggregate(by_county[, -1], list(County=by_county$div_name), mean, na.rm = TRUE)
+
+# reshape data wide to long
+by_county_agg_long <- gather(by_county_agg, Year, Percentage, totalper_0809:totalper_1718)
+
+# aggregate by county across all years
+by_county_agg_long_counties <- aggregate(list(Percentage=by_county_agg_long$Percentage), list(County=by_county_agg_long$County), mean, na.rm = TRUE)
+
+# find minimum value
+by_county_agg_long_counties[which.min(by_county_agg_long_counties$Percentage),]
+
+# find maximum value
+by_county_agg_long_counties[which.max(by_county_agg_long_counties$Percentage),]
+
+
+
 
