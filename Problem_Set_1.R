@@ -53,12 +53,53 @@ teachData_sub <- teachData %>%
 prinData_long <- gather(prinData_sub, Year, Salary,  FY2005P:FY2016P)
 teachData_long <- gather(teachData_sub, Year, Salary,  FY2005T:FY2016T)
 
-# some columns have percentages < 0, replace them with NA
+# some columns have salaries < 0, replace them with NA
 prinData_long [prinData_long  < 0] <- NA
 teachData_long [teachData_long  < 0] <- NA
 
 
-#WHERE I DO NUMBER 1 AND 2........
+#Create a histogram for principals salaries
+
+hist_prinData <- ggplot(prinData_long, aes (Salary))+ theme(legend.position = "none") +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white", binwidth = 1000) +
+  labs(title = "Histograpm of Principal Salaries", x = "Principal Salaries", y = "Density")
+hist_prinData
+
+hist_prinData +
+  stat_function(fun = dnorm, args = list(mean = mean(prinData_long$Salary, na.rm = TRUE), sd = sd(prinData_long$Salary, na.rm = TRUE)), color = "black", size = 1)
+
+
+#Descriptive Statistics for Principal Salaries
+
+round(stat.desc(prinData_long$Salary, basic = FALSE, norm = TRUE), digits = 3)
+
+#Q-QPlot of Principal Salaries DOES NOT WORK
+
+qqplot.prinData <- qplot(sample = prinData_long$Salary, stat="qq")
+qqplot.PrinData
+
+#Create a histogram for teachers salaries
+
+hist_teachData <- ggplot(teachData_long, aes (Salary))+ theme(legend.position = "none") +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white", binwidth = 1000) +
+  labs(title = "Histogram of Teacher Salaries", x = "Teacher Salaries", y = "Density")
+hist_teachData
+
+hist_teachData +
+  stat_function(fun = dnorm, args = list(mean = mean(teachData_long$Salary, na.rm = TRUE), sd = sd(teachData_long$Salary, na.rm = TRUE)), color = "black", size = 1)
+
+
+#Descriptive Statistics for Principal Salaries
+
+round(stat.desc(teachData_long$Salary, basic = FALSE, norm = TRUE), digits = 3)
+
+#Q-QPlot of Principal Salaries DOES NOT WORK
+
+qqplot.prinData <- qplot(sample = prinData_long$Salary, stat="qq")
+qqplot.PrinData
+
+
+
 
 
 #calculate the mean salaries over the 12 years 
