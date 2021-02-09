@@ -61,7 +61,7 @@ teachData_long [teachData_long  < 0] <- NA
 #Create a histogram for principals salaries
 
 hist_prinData <- ggplot(prinData_long, aes (Salary))+ theme(legend.position = "none") +
-  geom_histogram(aes(y = ..density..), color = "black", fill = "white", binwidth = 1000) +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white", binwidth = 3000) +
   labs(title = "Histograpm of Principal Salaries", x = "Principal Salaries", y = "Density")
 hist_prinData
 
@@ -75,8 +75,13 @@ round(stat.desc(prinData_long$Salary, basic = FALSE, norm = TRUE), digits = 3)
 
 #Q-QPlot of Principal Salaries DOES NOT WORK
 
+str(prinData_long)
+
 qqplot.prinData <- qplot(sample = prinData_long$Salary, stat="qq")
 qqplot.PrinData
+
+#Shapiro-Wilk Test Principal
+shapiro.test(prinData_long$Salary)
 
 #Create a histogram for teachers salaries
 
@@ -89,17 +94,17 @@ hist_teachData +
   stat_function(fun = dnorm, args = list(mean = mean(teachData_long$Salary, na.rm = TRUE), sd = sd(teachData_long$Salary, na.rm = TRUE)), color = "black", size = 1)
 
 
-#Descriptive Statistics for Principal Salaries
+#Descriptive Statistics for Teacher Salaries
 
 round(stat.desc(teachData_long$Salary, basic = FALSE, norm = TRUE), digits = 3)
 
-#Q-QPlot of Principal Salaries DOES NOT WORK
+#Q-QPlot of Teacher Salaries 
 
-qqplot.prinData <- qplot(sample = prinData_long$Salary, stat="qq")
-qqplot.PrinData
+qqplot.teachData <- qplot(sample = teachData_long$Salary, stat="qq")
+qqplot.teachData + labs(title = "QQPlot for Teacher Salaries", x = "Thoeretical", y = "Sample")
 
-
-
+#Shapiro-Wilk Test Teacher
+shapiro.test(teachData_long$Salary)
 
 
 #calculate the mean salaries over the 12 years 
