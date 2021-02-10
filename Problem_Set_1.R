@@ -300,6 +300,34 @@ str(salary_data2)
 salary_egr_data <- inner_join(egr_degrees2, salary_data2, by = "Div_num")
 
 
+#Plot Scatter Plot of 4y Percentage vs. Teacher Salary
+scatter_4y_teach<- ggplot(salary_egr_data, aes(X.EngTot4yr, TAvgSalary))
+scatter_4y_teach + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 4Year Degree Percentage with Teacher Salaries", 
+       x = "4Year Engineering Degrees", y = "Teacher Salary")
+
+#Plot Scatter Plot of 4y Percentage vs. Principal Salary
+scatter_4y_prin<- ggplot(salary_egr_data, aes(X.EngTot4yr, PAvgSalary))
+scatter_4y_prin + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 4Year Degree Percentage with Principal Salaries", 
+       x = "4Year Engineering Degrees", y = "Principal Salary")
+
+
+#Plot Scatter Plot of 2y Percentage vs. Teacher Salary
+scatter_2y_teach<- ggplot(salary_egr_data, aes(X.EngTot2yr, TAvgSalary))
+scatter_2y_teach + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 2Year Degree Percentage with Teacher Salaries", 
+       x = "2Year Engineering Degrees", y = "Teacher Salary")
+
+#Plot Scatter Plot of 4y Percentage vs. Principal Salary
+scatter_2y_prin<- ggplot(salary_egr_data, aes(X.EngTot2yr, PAvgSalary))
+scatter_2y_prin + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 2Year Degree Percentage with Principal Salaries", 
+       x = "2Year Engineering Degrees", y = "Principal Salary")
 
 
 
