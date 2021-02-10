@@ -16,6 +16,7 @@ library(tidyverse)
 library(tidyr)
 library(stringr)
 library(dplyr)
+library(hrbrthemes)
 
 #The original files were downloaded from  https://data.lib.vt.edu/files/vd66w001w 
 
@@ -145,7 +146,7 @@ healthData16 <- healthData %>%
     select(div_name, HR_outcomes_2016, HR_factors_2016)
 
 #Join Teacher and Health Data - only joining rows that have all data associated.  
-#Exlcuded schools that did not have health data.
+#Excluded schools that did not have health data.
 teach_health_data <- inner_join(teachData16,healthData16)
 
 #Adding Rank Column to Joined Data Frame
@@ -228,3 +229,37 @@ qqplot.4Yegr_degrees+ labs(title = "QQPlot for 4 Year Engineering Degrees", x = 
 
 #Shapiro-Wilk Test 4 Year
 shapiro.test(egr_degrees$X.EngTot4yr)
+
+#graph 2Y and 4Y data on one graph
+#scatter
+scatter_degrees <- ggplot(egr_degrees, aes(X.EngTot2yr, X.EngTot4yr))
+scatter_degrees + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 2Year and 4Year Degrees", 
+       x = "2Year Engineering Degrees", y = "4year Engineering Degrees")
+
+# reshape data wide to long 
+egr_degrees_long <- gather(egr_degrees, Year, Percentage,X.EngTot2yr:X.EngTot4yr)
+
+#histogram
+hist_degrees <- ggplot(egr_degrees_long, aes(x=Percentage, color = Year, fill = Year)) + 
+  geom_histogram(position="identity")+
+  theme(legend.position = "top")+
+  labs(x = "Percenage of Engineering Degrees", y = "Count")
+hist_degrees 
+
+
+#----------------Part 7----------------------
+#Devise a plot which lets you investigate if there is a relationship 
+#between public salaries and percent degrees awarded.
+
+#Salary data has the words "Public Schools" in the division name where the degrees does not
+#Change names in Salaries to remove "Public Schools" 
+
+salary_data$County <- str_remove(salary_data$County," Public Schools")
+
+
+#Join Salaries and Engineering degrees
+salaries_egr_data <- inner_join(salary_data, egr_degrees)
+
+
