@@ -1,11 +1,11 @@
 #Loading appropriate packages and libraries.
 ## Not sure if all are needed for this problem set.
-install.packages("car")
-install.packages("ggplot2")
-install.packages("pastecs")
-install.packages("psych")
-install.packages("tidyverse")
-install.packages("tidyr")
+#install.packages("car")
+#install.packages("ggplot2")
+#install.packages("pastecs")
+#install.packages("psych")
+#install.packages("tidyverse")
+#install.packages("tidyr")
  
 library(car)
 library(ggplot2)
@@ -242,7 +242,7 @@ egr_degrees_long <- gather(egr_degrees, Year, Percentage,X.EngTot2yr:X.EngTot4yr
 
 #histogram
 hist_degrees <- ggplot(egr_degrees_long, aes(x=Percentage, color = Year, fill = Year)) + 
-  geom_histogram(position="identity")+
+  geom_histogram(position="identity", alpha = 0.2, bins = 50)+
   theme(legend.position = "top")+
   labs(x = "Percenage of Engineering Degrees", y = "Count")
 hist_degrees 
