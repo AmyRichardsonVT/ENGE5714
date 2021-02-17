@@ -1,7 +1,7 @@
 #Week 5 - Chapter 7 - Sections 1 through 5
 
-install.packages("car")
-install.packages("QuantPsyc")
+#install.packages("car")
+#install.packages("QuantPsyc")
 
 library(Rcmdr)
 

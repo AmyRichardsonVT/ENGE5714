@@ -1,0 +1,154 @@
+--
+title: "Week 5 Exercises"
+author: "Richardson"
+date: "2/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+#install.packages("car")
+#install.packages("ggplot2")
+#install.packages("pastecs")
+#install.packages("psych")
+#install.packages("tidyverse")
+#install.packages("tidyr")
+
+library(car)
+library(ggplot2)
+library(pastecs)
+library(psych)
+library(Rcmdr)
+library(tidyverse)
+library(tidyr)
+library(stringr)
+library(dplyr)
+ 
+#The original files were downloaded from  https://data.lib.vt.edu/files/vd66w001w 
+
+Your goal is to produce a report of the following:
+------Part 1-------
+For the public school systems, describe (via reported descriptive statistics) and plot the distribution of principal salaries, the distribution of teacher salaries, and visually inspect if there seems to be a relationship between the two. 
+-------------------
+
+Read in Principal and Teacher Salaries from .csv files
+```{r}
+prinData <- read.csv("../Problem_Set_1_Data/Principal_Salaries.csv", header = TRUE)
+teachData <- read.csv("../Problem_Set_1_Data/Teacher_Salaries.csv", header = TRUE)
+```
+
+Check to see the types of variables
+```{r}
+str(prinData) 
+str(teachData)
+
+```
+
+
+Need to change columns containing salary to integers
+```{r}
+prinData <- prinData%>%
+    mutate_at(vars(starts_with("FY20")), as.numeric)
+str(prinData) 
+```
+  
+Clean both DFs so that we have only the columns we need.  
+```{r}
+prinData_sub <- prinData %>%
+  select(div_name, starts_with("FY20")) 
+  
+teachData_sub <- teachData %>%
+  select(div_name, starts_with("FY20"))
+```
+
+Next I will reshape the data from wide to long so that it is easier to plot.
+```{r}
+prinData_long <- gather(prinData_sub, Year, Salary,  FY2005P:FY2016P)
+teachData_long <- gather(teachData_sub, Year, Salary,  FY2005T:FY2016T)
+```
+
+Some columns have salaries < 0, replace them with NA
+```{r}
+prinData_long [prinData_long  <= 0] <- NA
+teachData_long [teachData_long  <= 0] <- NA
+```
+
+Create a histogram for Principal and Teacher salaries
+These histograms reflects salaries over the entire 12 year period.
+```{r}
+hist_prinData <- ggplot(prinData_long, aes (Salary))+ theme(legend.position = "none") +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white", binwidth = 3000) +
+  labs(title = "Histogram of Principal Salaries", x = "Principal Salaries", y = "Density")
+
+hist_prinData +
+  stat_function(fun = dnorm, args = list(mean = mean(prinData_long$Salary, na.rm = TRUE), sd = sd(prinData_long$Salary, na.rm = TRUE)), color = "black", size = 1)
+
+hist_teachData <- ggplot(teachData_long, aes (Salary))+ theme(legend.position = "none") +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white", binwidth = 2000) +
+  labs(title = "Histogram of Teacher Salaries", x = "Teacher Salaries", y = "Density")
+
+hist_teachData +
+  stat_function(fun = dnorm, args = list(mean = mean(teachData_long$Salary, na.rm = TRUE), sd = sd(teachData_long$Salary, na.rm = TRUE)), color = "black", size = 1)
+
+```
+
+Descriptive Statistics for Principal Salaries
+These statistics reflects salaries over the entire 12 year period.
+```{r}
+round(stat.desc(prinData_long$Salary, basic = FALSE, norm = TRUE), digits = 3)
+```
+Descriptive Statistics for Teacher Salaries
+These statistics reflects salaries over the entire 12 year period.
+```{r}
+round(stat.desc(teachData_long$Salary, basic = FALSE, norm = TRUE), digits = 3)
+```
+
+
+Q-QPlot of Principal & Teacher Salaries
+These plots reflects salaries over the entire 12 year period.
+```{r}
+qqplot.prinData <- qplot(sample = prinData_long$Salary, stat="qq")
+qqplot.prinData + labs(title = "QQPlot for Principal Salaries", x = "Thoeretical", y = "Sample")
+
+qqplot.teachData <- qplot(sample = teachData_long$Salary, stat="qq")
+qqplot.teachData + labs(title = "QQPlot for Teacher Salaries", x = "Thoeretical", y = "Sample")
+```
+
+
+Shapiro-Wilk Test Principal
+```{r}
+shapiro.test(prinData_long$Salary)
+```
+
+Shapiro-Wilk Test Teacher
+```{r}
+shapiro.test(teachData_long$Salary)
+```
+
+To plot the Teacher vs. Principal Salaries I took the mean of each school division, then joined the data in one dataframe using an full join.
+```{r}
+prinData_Tmean <- aggregate(list(PAvgSalary=prinData_long$Salary), list(County=prinData_long$div_name), mean, na.rm=TRUE)
+teachData_Tmean <- aggregate(list(TAvgSalary=teachData_long$Salary), list(County=teachData_long$div_name), mean, na.rm=TRUE)
+
+salary_data <- full_join(prinData_Tmean,teachData_Tmean)
+```
+Plot both Principle and Teacher Salaries on one graph
+```{r}
+scatter_both <- ggplot(salary_data, aes(PAvgSalary,TAvgSalary))
+scatter_both + geom_point() +
+  labs(title = "Compare Teacher and Principal Salaries", x = "Principal Salaries", y = "Teacher Salaries")
+```
+
+
+
+  
+
+  
+
+
+
+
+
