@@ -257,10 +257,10 @@ hist_degrees
 #Create DF with teacher and principal salaries by Division Number to Join with Degrees
 
 prinData_sub2 <- prinData %>%
-  select( ï..div_num,div_name, starts_with("FY20")) 
+  select(div_num,div_name, starts_with("FY20")) 
 
 teachData_sub2 <- teachData %>%
-  select(ï...div_num, div_name, starts_with("FY20")) 
+  select(?...div_num, div_name, starts_with("FY20")) 
 
 # reshape data wide to long 
 prinData_long2 <- gather(prinData_sub2, Year, Salary,  FY2005P:FY2016P)
@@ -271,10 +271,10 @@ prinData_long2 [prinData_long2  <= 0] <- NA
 teachData_long2 [teachData_long2  <= 0] <- NA
 
 #calculate the mean salaries over the 12 years 
-prinData_Tmean2 <- aggregate(list(PAvgSalary=prinData_long2$Salary), list(Div_num = prinData_long2$ï..div_num), mean, na.rm=TRUE)
+prinData_Tmean2 <- aggregate(list(PAvgSalary=prinData_long2$Salary), list(Div_num = prinData_long2$?..div_num), mean, na.rm=TRUE)
 
 #calculate the mean teacher salaries over the 12 years 
-teachData_Tmean2 <- aggregate(list(TAvgSalary=teachData_long2$Salary), list(Div_num=teachData_long2$ï...div_num), mean, na.rm=TRUE)
+teachData_Tmean2 <- aggregate(list(TAvgSalary=teachData_long2$Salary), list(Div_num=teachData_long2$?...div_num), mean, na.rm=TRUE)
 
 #join prin and teach average data by county
 salary_data2 <- full_join(prinData_Tmean2,teachData_Tmean2)

@@ -5,18 +5,11 @@ date: "2/13/2021"
 output: html_document
 ---
 
+## Problem Set 1 - Quantitative Analysis
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(tidyverse)
-```
-
-#install.packages("car")
-#install.packages("ggplot2")
-#install.packages("pastecs")
-#install.packages("psych")
-#install.packages("tidyverse")
-#install.packages("tidyr")
-
 library(car)
 library(ggplot2)
 library(pastecs)
@@ -26,33 +19,30 @@ library(tidyverse)
 library(tidyr)
 library(stringr)
 library(dplyr)
- 
-#The original files were downloaded from  https://data.lib.vt.edu/files/vd66w001w 
+```
 
-Your goal is to produce a report of the following:
-------Part 1-------
-For the public school systems, describe (via reported descriptive statistics) and plot the distribution of principal salaries, the distribution of teacher salaries, and visually inspect if there seems to be a relationship between the two. 
--------------------
+* install.packages("car")
+* install.packages("ggplot2")
+* install.packages("pastecs")
+* install.packages("psych")
+* install.packages("tidyverse")
+* install.packages("tidyr")
+
+The original files were downloaded from  https://data.lib.vt.edu/files/vd66w001w 
+
+# ------Part 1-------
+For the public school systems, describe (via reported descriptive statistics) and plot the distribution of principal salaries, the distribution of teacher salaries, and visually inspect if there seems to be a relationship between the two.
 
 Read in Principal and Teacher Salaries from .csv files
-```{r}
+```{r warning=FALSE}
 prinData <- read.csv("../Problem_Set_1_Data/Principal_Salaries.csv", header = TRUE)
 teachData <- read.csv("../Problem_Set_1_Data/Teacher_Salaries.csv", header = TRUE)
 ```
-
-Check to see the types of variables
-```{r}
-str(prinData) 
-str(teachData)
-
-```
-
 
 Need to change columns containing salary to integers
 ```{r}
 prinData <- prinData%>%
     mutate_at(vars(starts_with("FY20")), as.numeric)
-str(prinData) 
 ```
   
 Clean both DFs so that we have only the columns we need.  
@@ -142,9 +132,281 @@ scatter_both + geom_point() +
   labs(title = "Compare Teacher and Principal Salaries", x = "Principal Salaries", y = "Teacher Salaries")
 ```
 
+# ------Part 2-------
+* In accomplishing (1), please document any key data manipulation actions, assumptions, or critical decisions that were required in order for you to report what was requested.  
+  + Read in both Principal and Teacher Salaries
+  + Change values from characters to integers
+  + Create a new data frame with just columns I will use.  In both cases just the district name and the 12 years of salaries.
+  + Reshaped the data from wide to long so that the graph will contain all of the salaries over 12 years.
+  + Replaced the negative values with NA
+  + For the Teacher and Principal Salary scatter plot I used the mean of the salaries  over the 12 years.
 
 
-  
+
+# ------Part 3-------
+Compute a rank ordering for teacher salaries (e.g., #1 is the school system paying teachers the most on average) and plot this compared to the rank ordering in the VA County Health Rankings for both Health Factors and Health Outcomes. Just do this for 2016.
+                                              
+Read in Health Data from .csv files
+```{r}
+healthData <- read.csv("../Problem_Set_1_Data/VA_County_Health.csv", header = TRUE)
+```
+
+Isolate the 2016 data for both Teachers and Health Factors & Outcomes
+```{r}
+teachData16 <- teachData_sub %>%
+    select(div_name, "FY2016T" )
+
+teachData16[teachData16  < 0] <- NA
+
+healthData16 <- healthData %>%
+    select(div_name, HR_outcomes_2016, HR_factors_2016)
+```
+
+Join Teacher and Health Data - only joining rows that have all data associated. Excluded schools that did not have health data.
+```{r}
+teach_health_data <- inner_join(teachData16,healthData16)
+```
+
+Adding Rank Column to Joined Data Frame
+```{r}
+teach_health_data <- transform(teach_health_data, 
+          Srank = ave(FY2016T, FUN = function(x) rank(-x, ties.method = "first")))
+```
+
+Create a Scatter Plot for Teacher Salary Ranking vs. Health Outcome Ranking
+```{r}
+scatter_factor <- ggplot(teach_health_data, aes(Srank,HR_factors_2016))
+scatter_factor+ geom_point() +
+  geom_smooth() +
+  labs(title = "Compare Teacher Salary Ranking and Health Factor Ranking in 2016", 
+       x = "Teacher Salary Ranking", y = "Health Factor Ranking")
+```
+
+Create a Scatter Plot for Teacher Salary Ranking vs. Health Outcome Ranking
+```{r}
+scatter_outcome <- ggplot(teach_health_data, aes(Srank,HR_outcomes_2016))
+scatter_outcome+ geom_point() +
+  geom_smooth() +
+  labs(title = "Compare Teacher Salary Ranking and Health Outccomes Ranking in 2016", 
+       x = "Teacher Salary Ranking", y = "Health Outcomes Ranking")
+```
+
+# ------Part 4-------
+* In accomplishing (3), please document any key data manipulation actions, assumptions, or critical decisions that were required in order for you to report what was requested.
+
+  + Read in Health Data
+  + Isolate the 2016 data from imported dataframes for both Teacher Salaries and Health Data
+  + Do an “inner join” between the Teacher and Health data for 2016.  This will exclude the rows in the Teacher dataframe that do not have a match in the Health Data dataframe.  
+  +Added a Rank column for the Teacher Salary to the joined data frame
+
+
+
+
+## ------Part 5-------
+Describe (via reported descriptive statistics) and plot the distribution of Percent Engineering Degrees awarded by different school systems.  Note that one of the sheets in this file produces a nice summary table of these percentages so use that sheet to make things easier on yourself. Plot the 2Y and 4Y percentages on the same plot as two different series of data. Make a statement of interpretation about what you see.
+
+Read in Percentage of Engineering Degrees from .csv files
+```{r}
+all_degrees <- read.csv("../Problem_Set_1_Data/HE_Institutions.csv", header = TRUE)
+```
+
+Rename first column to match with Teachers.
+```{r}
+names(all_degrees)[1] <- "div_name"
+```
+
+Isolate the 2-year and 4-year columns and convert to percentage
+```{r}
+egr_degrees <- all_degrees %>%
+  select("div_name", "X.EngTot2yr", "X.EngTot4yr" ) %>%
+  transform(X.EngTot2yr = X.EngTot2yr * 100) %>%
+  transform(X.EngTot4yr = X.EngTot4yr * 100)
+```
+
+Create a histogram for 2Y Engineering
+```{r}
+hist_2y<- ggplot(egr_degrees, aes (X.EngTot2yr))+ theme(legend.position = "none") +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white") +
+  labs(title = "Histogram of 2 Year Engineering Degrees", x = "Percentange of 2 Year Engineering Degrees", y = "Density")
+
+hist_2y +
+  stat_function(fun = dnorm, args = list(mean = mean(egr_degrees$X.EngTot2yr, na.rm = TRUE), sd = sd(egr_degrees$X.EngTot2yr, na.rm = TRUE)), color = "black", size = 1)
+```
+
+Descriptive Statistics for 2Y Engineering
+```{r}
+round(stat.desc(egr_degrees$X.EngTot2yr, basic = FALSE, norm = TRUE), digits = 3)
+```
+
+Q-QPlot of 2Year 
+```{r}
+qqplot.2Yegr_degrees<- qplot(sample = egr_degrees$X.EngTot2yr, stat="qq")
+qqplot.2Yegr_degrees+ labs(title = "QQPlot for 2 Year Engineering Degrees", x = "Thoeretical", y = "Sample")
+```
+
+
+Shapiro-Wilk Test 2 Year
+```{r}
+shapiro.test(egr_degrees$X.EngTot2yr)
+```
+
+Create a histogram for 4Y Engineering
+```{r}
+hist_4y<- ggplot(egr_degrees, aes (X.EngTot4yr))+ theme(legend.position = "none") +
+  geom_histogram(aes(y = ..density..), color = "black", fill = "white") +
+  labs(title = "Histogram of 4 Year Engineering Degrees", x = "Percentange of 4 Year Engineering Degrees", y = "Density")
+
+hist_4y +
+  stat_function(fun = dnorm, args = list(mean = mean(egr_degrees$X.EngTot4yr, na.rm = TRUE), sd = sd(egr_degrees$X.EngTot4yr, na.rm = TRUE)), color = "black", size = 1)
+```
+
+Descriptive Statistics for 4Y Engineering
+```{r}
+round(stat.desc(egr_degrees$X.EngTot4yr, basic = FALSE, norm = TRUE), digits = 3)
+```
+
+Q-QPlot of 4Year 
+```{r}
+qqplot.4Yegr_degrees<- qplot(sample = egr_degrees$X.EngTot4yr, stat="qq")
+qqplot.4Yegr_degrees+ labs(title = "QQPlot for 4 Year Engineering Degrees", x = "Thoeretical", y = "Sample")
+```
+
+
+Shapiro-Wilk Test 4 Year
+```{r}
+shapiro.test(egr_degrees$X.EngTot4yr)
+```
+graph 2Y and 4Y data on one graph
+scatter
+```{r}
+scatter_degrees <- ggplot(egr_degrees, aes(X.EngTot2yr, X.EngTot4yr))
+scatter_degrees + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 2Year and 4Year Degrees", 
+       x = "2Year Engineering Degrees", y = "4year Engineering Degrees")
+```
+
+Reshape data wide to long 
+```{r}
+egr_degrees_long <- gather(egr_degrees, Year, Percentage,X.EngTot2yr:X.EngTot4yr)
+```
+
+
+Histogram
+```{r}
+hist_degrees <- ggplot(egr_degrees_long, aes(x=Percentage, color = Year, fill = Year)) + 
+  geom_histogram(position="identity", alpha = 0.2, bins = 50)+
+  theme(legend.position = "top")+
+  labs(x = "Percenage of Engineering Degrees", y = "Count")
+hist_degrees 
+```
+
+# ------Part 6-------
+* In accomplishing (5), please document any key data manipulation actions, assumptions, or critical decisions that were required in order for you to report what was requested.
+
+  + Read in Percentage of Engineering Degrees
+  + Isolate the Engineering percentages for both 2 and 4 year
+  + Multiply the percentage columns by 100 to change to a percentage.
+
+
+
+## ------Part 7-------
+Devise a plot which lets you investigate if there is a relationship between public salaries and percent degrees awarded.
+
+
+Create DF with teacher and principal salaries by Division Number to Join with Degrees
+```{r}
+prinData_sub2 <- prinData %>%
+  select( ï..div_num,div_name, starts_with("FY20")) 
+
+teachData_sub2 <- teachData %>%
+  select(ï...div_num, div_name, starts_with("FY20")) 
+```
+
+Reshape data wide to long 
+```{r}
+prinData_long2 <- gather(prinData_sub2, Year, Salary,  FY2005P:FY2016P)
+teachData_long2 <- gather(teachData_sub2, Year, Salary,  FY2005T:FY2016T)
+```
+
+Some columns have salaries < 0, replace them with NA
+```{r}
+prinData_long2 [prinData_long2  <= 0] <- NA
+teachData_long2 [teachData_long2  <= 0] <- NA
+```
+
+Calculate the mean salaries over the 12 years 
+```{r}
+prinData_Tmean2 <- aggregate(list(PAvgSalary=prinData_long2$Salary), list(Div_num = prinData_long2$ï..div_num), mean, na.rm=TRUE)
+
+teachData_Tmean2 <- aggregate(list(TAvgSalary=teachData_long2$Salary), list(Div_num=teachData_long2$ï...div_num), mean, na.rm=TRUE)
+```
+
+Join prin and teach average data by county
+```{r}
+salary_data2 <- full_join(prinData_Tmean2,teachData_Tmean2)
+```
+
+Create DF with engineering degrees by Division Number to Join with Degrees
+```{r}
+egr_degrees2 <- all_degrees %>%
+  select("Div_num", "X.EngTot2yr", "X.EngTot4yr" ) %>%
+  transform(X.EngTot2yr = X.EngTot2yr * 100) %>%
+  transform(X.EngTot4yr = X.EngTot4yr * 100)
+```
+
+Need to change columns containing salary to integers
+```{r}
+salary_data2 <- salary_data2 %>%
+  mutate_at(vars(starts_with("Div_num")), as.numeric)
+```
+
+Join Salaries and Engineering degrees
+```{r}
+salary_egr_data <- inner_join(egr_degrees2, salary_data2, by = "Div_num")
+```
+
+Plot Scatter Plot of 4y Percentage vs. Teacher Salary
+```{r}
+scatter_4y_teach<- ggplot(salary_egr_data, aes(X.EngTot4yr, TAvgSalary))
+scatter_4y_teach + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 4Year Degree Percentage with Teacher Salaries", 
+       x = "4Year Engineering Degrees", y = "Teacher Salary")
+```
+
+Plot Scatter Plot of 4y Percentage vs. Principal Salary
+```{r}
+scatter_4y_prin<- ggplot(salary_egr_data, aes(X.EngTot4yr, PAvgSalary))
+scatter_4y_prin + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 4Year Degree Percentage with Principal Salaries", 
+       x = "4Year Engineering Degrees", y = "Principal Salary")
+```
+
+Plot Scatter Plot of 2y Percentage vs. Teacher Salary
+```{r}
+scatter_2y_teach<- ggplot(salary_egr_data, aes(X.EngTot2yr, TAvgSalary))
+scatter_2y_teach + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 2Year Degree Percentage with Teacher Salaries", 
+       x = "2Year Engineering Degrees", y = "Teacher Salary")
+```
+
+Plot Scatter Plot of 4y Percentage vs. Principal Salary
+```{r}
+scatter_2y_prin<- ggplot(salary_egr_data, aes(X.EngTot2yr, PAvgSalary))
+scatter_2y_prin + geom_point() +
+  geom_smooth() +
+  labs(title = "Compare 2Year Degree Percentage with Principal Salaries", 
+       x = "2Year Engineering Degrees", y = "Principal Salary")
+```
+
+# ------Part 8-------
+* In accomplishing (7), please document any key data manipulation actions, assumptions, or critical decisions that were required in order for you to report what was requested.
+
+  + Create a new dataframe from teacher and principle data that includes the division number.  This required me to change it from wide to long, 
+  + Isolate the Engineering percentages for both 2 and 4 year
 
   
 
