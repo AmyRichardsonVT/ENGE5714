@@ -1,0 +1,31 @@
+---
+title: "Week 6 Practice"
+author: "Amy Richardson"
+date: "2/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(Rcmdr)
+```
+Read in Data
+```{r}
+album2 <- read.delim("Album Sales 2.dat", header = TRUE)
+```
+
+Create two models. 
+  1. Adverts as predictors
+  2. Adverts, Airplay, and Attrativeness as predictors
+```{r}
+albumSales.2 <- lm(sales ~ adverts, data = album2)
+
+albumSales.3 <- lm(sales ~ adverts + airplay + attract, data = album2)
+```
+  
+Model Summaries
+```{r}
+summary(albumSales.2)
+summary(albumSales.3)
+```
+
