@@ -18,10 +18,167 @@ library(mlogit)
 ```
 Read in eel data
 ```{r}
-eeldata <- read.delim("eel.dat", header = TRUE)
+eelData <- read.delim("eel.dat", header = TRUE)
+head(eelData)
 ```
+
+Re-designate the categorical data to numbers that make sense given the context - THIS DID NOT WORK??
+```{r}
+eelData$Cured<-factor(eelData$Cured, levels = c("Not Cured", "Cured"))
+eelData$Intervention<-factor(eelData$Intervention, levels = c("No Treatment", "Intervention"))
+
+```
+
+Create the logistic regression
+```{r}
+eel.Model.1 <- glm(Cured ~ Intervention, data = eelData, family = binomial())
+eel.Model.2 <- glm(Cured ~ Intervention + Duration, data = eelData, family = binomial())
+```
+
+Summary
+```{r}
+summary(eel.Model.1)
+```
+
+Calculate Chi-Square for model, degrees of freedom used in calculating chi-square, probability associated with the chi-square statistics, Hosmer and Lemeshow's measure of R-square, Cox and Snell's R-square, and Nagelkerke's R-square
+```{r}
+modelChi <- eel.Model.1$null.deviance - eel.Model.1$deviance
+chidf <- eel.Model.1$df.null - eel.Model.1$df.residual
+chisq.prob <- 1 - pchisq(modelChi, chidf)
+modelChi; chidf; chisq.prob
+
+
+
+R2.hl<-modelChi/eel.Model.1$null.deviance
+R.cs <- 1 - exp ((eel.Model.1$deviance - eel.Model.1$null.deviance)/113)
+R.n <- R.cs /( 1- ( exp (-(eel.Model.1$null.deviance/ 113))))
+
+
+
+```
+
+Odds Ratio's
+```{r}
+eel.Model.1$coefficients
+exp(eel.Model.1$coefficients)
+```
+
+Look at Model 2
+```{r}
+summary(eel.Model.2)
+```
+```{r}
+modelChi <- eel.Model.1$deviance - eel.Model.2$deviance
+chidf <- eel.Model.1$df.residual - eel.Model.2$df.residual
+chisq.prob <- 1 - pchisq(modelChi, chidf)
+modelChi; chidf; chisq.prob
+
+anova(eel.Model.1, eel.Model.2)
+```
+
+Obatining Residuals
+```{r}
+eelData$predicted.probabilities<-fitted(eel.Model.1)
+eelData$standardized.residuals<-rstandard(eel.Model.1)
+eelData$studentized.residuals<-rstudent(eel.Model.1)
+eelData$dfbeta<-dfbeta(eel.Model.1)
+eelData$dffit<-dffits(eel.Model.1)
+eelData $leverage<-hatvalues(eel.Model.1)
+```
+
+Predicted probabilities
+```{r}
+head(eelData[, c("Cured", "Intervention", "Duration", "predicted.probabilities")])
+
+#
+eelData[, c("leverage", "studentized.residuals", "dfbeta")]
+```
+
+
+##New Set of data
+Load Data
+```{r}
+penaltyData<-read.delim("penalty.dat", header = TRUE)
+penaltyData$Scored<-factor(penaltyData$Scored, levels = c("Missed Penalty", "Scored Penalty"))
+head(penaltyData)
+```
+
+Create Model
+```{r}
+penaltyModel.2 <- glm(Scored ~ Previous + PSWQ + Anxious, data = penaltyData, family = binomial())
+summary(penaltyModel.2)
+```
+
+#----- Testing multicollinearity ------
+```{r}
+vif(penaltyModel.2)
+1/vif(penaltyModel.2)
+```
+
+
+#----- Testing the linearity of the logit ------
+Create the interaction of PSWQ with log(PSWQ)
+```{r}
+penaltyData$logPSWQInt<-log(penaltyData$PSWQ)*penaltyData$PSWQ
+```
+
+Create the interaction of Anxious and Previous with their logs
+```{r}
+penaltyData$logAnxInt<-log(penaltyData$Anxious)*penaltyData$Anxious
+penaltyData$logPrevInt<-log(penaltyData$Previous + 1)*penaltyData$Previous
+
+head(penaltyData)
+
+```
+
+Create Model
+```{r}
+penaltyTest.1 <- glm(Scored ~ PSWQ +
+					    Anxious + 
+					    Previous +
+					    logPSWQInt +
+                        logAnxInt +	
+					    logPrevInt, 
+	data=penaltyData, family=binomial())
+summary(penaltyTest.1)
+```
+##New Set of data
+Load Data
+```{r}
+chatData<-read.delim("Chat-Up Lines.dat", header = TRUE)
+chatData$Gender<-factor(chatData$Gender, levels = c("Male", "Female"))
+chatData$Success<-factor(chatData$Success)
+head(chatData)
+```
+
+Rearrange data - DOES NOT WORK
 
 ```{r}
-
+mlChat <- mlogit.data(chatData, choice="Success", shape="wide")
+head(mlChat)
 ```
+
+Create model
+```{r}
+chatModel <- mlogit(Success ~ 1 | Good_Mate + Funny + Gender + Sex + Gender:Sex +  Funny:Gender , data = mlChat, reflevel=3)
+summary(chatModel)
+
+data.frame(exp(chatModel$coefficients))
+exp(confint(chatModel))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
