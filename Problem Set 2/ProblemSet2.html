@@ -498,7 +498,10 @@ print(my_spearman_correlations)</code></pre>
 ## 0.2299198</code></pre>
 <div id="report-on-results" class="section level3">
 <h3>Report on Results</h3>
-<p><em>report which correlations are statistically significant (if any) and comment on the strength of any relationships you observe</em></p>
+<p><em>report which correlations are statistically significant (if any) and comment on the strength of any relationships you observe</em> Pearson - Use if you have:</p>
+<p>Large (&gt; 30) sample size Normally distributed data Interval data Values for r lie in [-1,1]</p>
+<p>Rules of thumb for interpretation:</p>
+<p>very small effect size: 0 &lt; ∣r∣ &lt; 0.1 small effect size: 0.1 &lt; ∣r∣ &lt; 0.3 medium effect size: 0.3 &lt; ∣r∣ &lt; 0.5 large effect size: 0.5 &lt; ∣r∣ &lt; 1</p>
 <hr />
 </div>
 </div>
@@ -524,7 +527,9 @@ teachData_long &lt;- gather(teachData_sub, Year, Salary,  FY2005T:FY2016T)</code
 <pre class="r"><code>prinData_long [prinData_long  &lt;= 0] &lt;- NA
 teachData_long [teachData_long  &lt;= 0] &lt;- NA</code></pre>
 <p>Join Principle &amp; Teacher data with full join.</p>
-<pre class="r"><code>#salary_data &lt;- full_join(prinData_Tmean,teachData_Tmean)</code></pre>
+<pre class="r"><code>salary_data &lt;- full_join(prinData_long,teachData_long)</code></pre>
+<p>Not sure if this is right but let’s just look at Alexandria City - DOES NOT WORK!</p>
+<pre class="r"><code>al_city_long &lt;- salary_data %&gt;% filter(div_name == &quot;Alexandria City Public Schools&quot;)</code></pre>
 <hr />
 </div>
 <div id="part-3" class="section level1">

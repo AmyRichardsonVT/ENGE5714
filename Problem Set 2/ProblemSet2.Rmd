@@ -157,6 +157,13 @@ Join Principle & Teacher data with full join.
 salary_data <- full_join(prinData_long,teachData_long)
 ```
 
+Not sure if this is right but let's just look at Alexandria City - DOES NOT WORK!
+```{r}
+al_city_long <- salary_data %>% filter(div_name == "Alexandria City Public Schools")
+  
+
+```
+
 
 ***
 # ------Part 3------
