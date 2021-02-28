@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 Working in:  
 C:-Users-Amy Richardson-Dropbox-VT - PhD-ENGE 5714 - Quant-R Practice-ENGE5714-Problem Set 2
 
+GitHub [link](https://github.com/AmyRichardsonVT/ENGE5714/blob/main/Problem%20Set%202/ProblemSet2.Rmd) to Code
+
 ```{r}
 library(car)
 library(psych)
@@ -33,18 +35,89 @@ all_degrees <- read.csv("PS_Degrees.csv", header = TRUE)
 
 names(all_degrees)[1] <- "div_name"
 percent_degrees <- all_degrees %>%
-  select("Div_num", "div_name", "X.2r", "X.4yr", "X.EngTot4yr", "X.CSSTEMH4yr" ) %>%
+  select("Div_num", "X.2r", "X.4yr", "X.EngTot4yr", "X.CSSTEMH4yr" ) %>%
   transform(X.2r = X.2r * 100) %>%
   transform(X.4yr = X.4yr * 100) %>%
   transform(X.EngTot4yr = X.EngTot4yr * 100) %>%
   transform(X.CSSTEMH4yr = X.CSSTEMH4yr * 100)
 ```
 
+* Define variables:
+     + X.2r = Percent of total degrees awarded from 2-yr public VA institutions, 2012-13 through 2016-17
+     + X.4yr = Percent of total degrees awarded from 4-yr institutions, 2012-13 through 2016-17
+     + X.EngTot4yr = Percent of total degrees from 4-yr institutions during five-year time period that were Engineering degrees
+     + X.CSSTEMH4yr = Percent of all STEMH degrees awarded from 4-yr institutions that were CS/IS during five-year time period
+
+Remove rows with NA since the entire row contains NA values
+```{r}
+percent_degrees <- percent_degrees[-c(135:144), ]
+```
+
+Check to see if the data is normally distributed.  First Plot this data.
+```{r}
+degree_df_long <- percent_degrees %>% 
+  pivot_longer(cols = X.2r:X.CSSTEMH4yr, names_to = "Variable", values_to = "Percentages")
+
+degree_df_long %>% 
+  ggplot(aes(x = Percentages, fill = Variable)) +
+  geom_histogram() +
+  facet_wrap(Variable ~.) +
+  theme(legend.position = "none")
+
+```
+
+Run Q-QPlots
+```{r}
+degree_df_long %>% 
+  ggplot(aes(sample=Percentages)) +
+  stat_qq() +
+  stat_qq_line() +
+  facet_wrap(Variable ~ .)
+```
+
 Run correlation 
 ```{r}
-my_correlations <- percent_degrees %>% select() %>% cor()
+my_correlations <- percent_degrees %>% select(X.2r, X.4yr, X.EngTot4yr, X.CSSTEMH4yr) %>% cor()
 print(my_correlations)
 ```
+
+Run Spearman's Corelation
+```{r}
+my_spearman_correlations <- percent_degrees %>% select(X.2r, X.4yr, X.EngTot4yr, X.CSSTEMH4yr) %>% cor(method="spearman")
+print(my_spearman_correlations)
+```
+
+Get p-values
+```{r}
+cor.test(percent_degrees$X.2r, percent_degrees$X.EngTot4yr)
+```
+```{r}
+cor.test(percent_degrees$X.2r, percent_degrees$X.CSSTEMH4yr)
+```
+```{r}
+cor.test(percent_degrees$X.4yr, percent_degrees$X.EngTot4yr)
+```
+```{r}
+cor.test(percent_degrees$X.4yr, percent_degrees$X.CSSTEMH4yr)
+```
+
+### Report on Results
+*report which correlations are statistically significant (if any) and comment on the strength of any relationships you observe*
+Pearson - Use if you have:
+
+Large (> 30) sample size
+Normally distributed data
+Interval data
+Values for r  lie in [-1,1]
+
+Rules of thumb for interpretation:
+
+very small effect size: 0 < ∣r∣ < 0.1
+small effect size: 0.1 < ∣r∣ < 0.3
+medium effect size: 0.3 < ∣r∣ < 0.5
+large effect size: 0.5 < ∣r∣ < 1
+
+
 
 ***
 # ------Part 2------
@@ -81,14 +154,13 @@ teachData_long [teachData_long  <= 0] <- NA
 ```
 Join Principle & Teacher data with full join.
 ```{r}
-p
-salary_data <- full_join(prinData_Tmean,teachData_Tmean)
+salary_data <- full_join(prinData_long,teachData_long)
 ```
 
 
 ***
 # ------Part 3------
-Randomly divide the group of counties from (2) in two halves.  Run a simple regression on each half.  Compare the results from each of these two samples with what you know the population answers to be and discuss any differences you see in these two estimates of the true values and if the confidence intervals from these samples encompass the results of the original population regression from (2). Plot scatterplots of these different datasets with models and use ggplot to add the lines on too. 
+Randomly divide the group of counties from (2) in two halves.  Run a simple regression on each half.  Compare the results from each of these two samples with what you know the population answers to be and discuss any differences you see in these two estimates of the true values and if the confidence intervals from these samples encompass the results of the original population regression from (2). Plot scatterplots of these different datasets with models and use ggplot to add the lines on too.  
 
 ***
 # ------Part 4------
