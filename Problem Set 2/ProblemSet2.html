@@ -763,9 +763,31 @@ summary(fit_salary2_2005)</code></pre>
 <div id="part-4" class="section level1">
 <h1>——Part 4——</h1>
 <p>Run a multiple regression. Choose an outcome variable of interest from the one of the degree percentage variables. Choose one predictor variable from the tables provided to pretend it is the theory variable. Choose two additional predictor variables from the tables to be the “additional” possible predictor variables. Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed. Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.</p>
+<p>I will use Percentage of all STEM-H degree as the outcome variable all for 2015.</p>
+<p>Read in the new data, select the relevant columns, ensure the data are numbers, and join data.</p>
+<pre class="r"><code>VA_chars &lt;- read.csv(&quot;VA_characteristics.csv&quot;, header = TRUE)
+
+VA_chars_sub &lt;- VA_chars %&gt;%
+  select(Locality, HS2015, Unemploy2015, Comp_index_2014_2016) 
+
+degree_sub &lt;- all_degrees %&gt;%
+  select(div_name, X.STEMHall) 
+
+names(VA_chars_sub)[1] &lt;- &quot;div_name&quot;
+
+VA_chars_sub &lt;- VA_chars_sub %&gt;%
+  mutate_at(vars(starts_with (&quot;HS&quot;)), as.numeric) 
+
+VA_chars_sub &lt;- VA_chars_sub %&gt;%
+  mutate_at(vars(starts_with (&quot;Une&quot;)), as.numeric) 
+
+VA_chars_sub &lt;- VA_chars_sub %&gt;%
+  mutate_at(vars(starts_with (&quot;Comp&quot;)), as.numeric)
+
+char_degree &lt;- inner_join(VA_chars_sub, degree_sub, by = &quot;div_name&quot;)</code></pre>
 <div id="report-on-results-3" class="section level3">
 <h3>Report on Results</h3>
-<p><em>Discuss in practical terms how to interpret the regression coefficient</em> xxxxxxx</p>
+<p><em>Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed. Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.</em> xxxxxxx</p>
 </div>
 </div>
 
