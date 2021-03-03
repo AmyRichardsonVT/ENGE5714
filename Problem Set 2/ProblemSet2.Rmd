@@ -316,6 +316,19 @@ char_degree <- inner_join(VA_chars_sub, degree_sub, by = "div_name")
 
 ```
 
+NEED TO PICK NEW VARIABLES.....:)
+Using the Hierarchical method I am going to start using unemployment rates to predict % of STEM-H degrees at all institutions of higher ed.
+```{r}
+fit_single_degree <- lm(X.STEMHall ~ Comp_index_2014_2016, data = char_degree)
+summary(fit_single_degree)
+
+char_degree %>% 
+  ggplot(aes(x = Unemploy2015, y = X.STEMHall)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Single Regression 2015",  x = "Unemployment Rate", y = "Percentage of STEM-H Degrees")
+```
+
 
 
 
