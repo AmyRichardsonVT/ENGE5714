@@ -288,6 +288,11 @@ xxxxxxx
 # ------Part 4------
 Run a multiple regression.  Choose an outcome variable of interest from the one of the degree percentage variables.  Choose one predictor variable from the tables provided to pretend it is the theory variable. Choose two additional predictor variables from the tables to be the “additional” possible predictor variables. Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.
 
+I will use Percentage to all STEM-H degree as the outcome variable.  
+
+```{r}
+
+```
 
 
 
