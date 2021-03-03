@@ -170,13 +170,13 @@ salary_data %>%
   ggplot(aes(x = FY2005P, y = FY2005T)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(title = "2005",  x = "Teacher Salaries", y = "Principal Salaries")
+  labs(title = "2005",  x = "Principal Salaries", y = "Teacher Salaries")
  
 salary_data %>% 
   ggplot(aes(x = FY2016P, y = FY2016T)) +
   geom_point() +
   geom_smooth(method = "lm")+
-  labs(title = "2016", x = "Teacher Salaries", y = "Principal Salaries")
+  labs(title = "2016", x = "Principal Salaries", y = "Teacher Salaries")
 
 ```
 
@@ -234,23 +234,69 @@ fit_salary_df %>% filter(large.residual16 == TRUE) %>% head()
 plot(fit_salary_2016)
 ```
 
+
 There is an indication that there are no outliers or influential cases since there are no residuals greater less than -2 or greater than 2.  This is confirmed by the dataframe and the plots.
 
-
+### Report on Results
+*Discuss in practical terms how to interpret the regression coefficient*
+xxxxxxx
 
 ***
 # ------Part 3------
 Randomly divide the group of counties from (2) in two halves.  Run a simple regression on each half.  Compare the results from each of these two samples with what you know the population answers to be and discuss any differences you see in these two estimates of the true values and if the confidence intervals from these samples encompass the results of the original population regression from (2). Plot scatterplots of these different datasets with models and use ggplot to add the lines on too.  
 
 
-Let's take our joined dataframe (salary_data) and split the 130 observations in half.  
+Let's take our joined dataframe (salary_data) and split the 130 observations into two ramdom groups.  
 ```{r}
+set.seed(37645)                           
+dummy_sep <- rbinom(nrow(salary_data), 1, 0.5)  
 
+salary_sample1 <- salary_data[dummy_sep == 0, ]
+salary_sample2 <- salary_data[dummy_sep == 1, ]
+               
 ```
 
+Create a Linear Model on each set for 2005
+```{r}
+fit_salary1_2005 <- lm(FY2005T ~ FY2005P, data = salary_sample1)
+summary(fit_salary1_2005)
+```
+```{r}
+fit_salary2_2005 <- lm(FY2005T ~ FY2005P, data = salary_sample2)
+summary(fit_salary2_2005)
+```
+Create Plots for 2005
+```{r}
+salary_sample1 %>% 
+  ggplot(aes(x = FY2005P, y = FY2005T)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "2005:  Sample Group 1",  x = "Principal Salaries", y = "Teacher Salaries")
+ 
+salary_sample2 %>% 
+  ggplot(aes(x = FY2005P, y = FY2005T)) +
+  geom_point() +
+  geom_smooth(method = "lm")+
+  labs(title = "2005:  Sample Group 2", x = "Principal Salaries", y = "Teacher Salaries")
+```
 
-
+### Report on Results
+*discuss any differences you see in these two estimates of the true values and if the confidence intervals from these samples encompass the results of the original population regression from *
+xxxxxxx
 
 ***
 # ------Part 4------
 Run a multiple regression.  Choose an outcome variable of interest from the one of the degree percentage variables.  Choose one predictor variable from the tables provided to pretend it is the theory variable. Choose two additional predictor variables from the tables to be the “additional” possible predictor variables. Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.
+
+
+
+
+
+
+
+
+
+
+### Report on Results
+*Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.*
+xxxxxxx
