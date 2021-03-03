@@ -21,6 +21,7 @@ library(car)
 library(psych)
 library(ggplot2)
 library(tidyverse)
+library(broom)
 ```
 
 ***
@@ -61,8 +62,10 @@ degree_df_long <- percent_degrees %>%
 degree_df_long %>% 
   ggplot(aes(x = Percentages, fill = Variable)) +
   geom_histogram() +
-  facet_wrap(Variable ~.) +
+  facet_wrap(Variable ~., scales = "free") +
   theme(legend.position = "none")
+
+
 
 ```
 
@@ -72,7 +75,7 @@ degree_df_long %>%
   ggplot(aes(sample=Percentages)) +
   stat_qq() +
   stat_qq_line() +
-  facet_wrap(Variable ~ .)
+  facet_wrap(Variable ~ ., scales = "free")
 ```
 
 Run correlation 
@@ -124,50 +127,129 @@ large effect size: 0.5 < ∣r∣ < 1
 Run a simple regression using principal salary in a county to predict teacher salary in that county. Interpret the results of the model and discuss how good the fit is. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.
 
 Read in Data and Create a DataFrame of  salient columns.
+Note that in the original data set the following sections were removed:
+     + Governor's Schools
+     + Special Education Regoinal Programs
+     + Career and Technical (Vocational) Education Regional Programs
+     + Regional Alternative Education Programs
+     
 ```{r warning=FALSE}
 prinData <- read.csv("Prin_Salary.csv", header = TRUE)
 teachData <- read.csv("Teach_Salary.csv", header = TRUE)
 
 ```
+
+Clean both DFs so that we have only the columns we need.  We will only look at 2005 and 2016
+```{r}
+prinData_sub <- prinData %>%
+  select(div_name, FY2005P, FY2016P) 
+  
+teachData_sub <- teachData %>%
+  select(div_name, FY2005T, FY2016T)
+```
+
 Need to change columns containing salary to integers
 ```{r}
 prinData <- prinData%>%
     mutate_at(vars(starts_with("FY20")), as.numeric)
 ```
-  Clean both DFs so that we have only the columns we need.  
+
+Join Principle & Teacher data with full join.
 ```{r}
-prinData_sub <- prinData %>%
-  select(div_name, starts_with("FY20")) 
-  
-teachData_sub <- teachData %>%
-  select(div_name, starts_with("FY20"))
-```
-Next I will reshape the data from wide to long so that it is easier to plot.
-```{r}
-prinData_long <- gather(prinData_sub, Year, Salary,  FY2005P:FY2016P)
-teachData_long <- gather(teachData_sub, Year, Salary,  FY2005T:FY2016T)
+salary_data <- inner_join(prinData_sub,teachData_sub)
+
 ```
 Some columns have salaries < 0, replace them with NA
 ```{r}
-prinData_long [prinData_long  <= 0] <- NA
-teachData_long [teachData_long  <= 0] <- NA
-```
-Join Principle & Teacher data with full join.
-```{r}
-salary_data <- full_join(prinData_long,teachData_long)
+salary_data [salary_data  <= 0] <- NA
 ```
 
-Not sure if this is right but let's just look at Alexandria City - DOES NOT WORK!
+Create Plots for 2005 and 2016
 ```{r}
-al_city_long <- salary_data %>% filter(div_name == "Alexandria City Public Schools")
-  
+salary_data %>% 
+  ggplot(aes(x = FY2005P, y = FY2005T)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "2005",  x = "Teacher Salaries", y = "Principal Salaries")
+ 
+salary_data %>% 
+  ggplot(aes(x = FY2016P, y = FY2016T)) +
+  geom_point() +
+  geom_smooth(method = "lm")+
+  labs(title = "2016", x = "Teacher Salaries", y = "Principal Salaries")
 
 ```
+
+Create Model for 2005
+```{r}
+fit_salary_2005 <- lm(FY2005T ~ FY2005P, data = salary_data)
+summary(fit_salary_2005)
+```
+Create Model for 2016
+```{r}
+fit_salary_2016 <- lm(FY2016T ~ FY2016P, data = salary_data)
+summary(fit_salary_2016)
+```
+
+Look for Outliers and/or Influential Cases 2005
+```{r}
+salary_data$residual05 <- resid(fit_salary_2005)
+salary_data$standardized.residuals05 <- rstandard(fit_salary_2005)
+salary_data$studentized.residuals05 <- rstudent(fit_salary_2005)
+salary_data$cooks.distance05 <-cooks.distance(fit_salary_2005)
+salary_data$dfbeta05 <- dfbeta(fit_salary_2005)
+salary_data$dffit05 <- dffits(fit_salary_2005)
+salary_data$leverage05 <- hatvalues(fit_salary_2005)
+salary_data$covariance.ratios05 <- covratio(fit_salary_2005)
+
+fit_salary_df <- salary_data %>% 
+  mutate(large.residual05 = case_when(standardized.residuals05 > 2 | standardized.residuals05 < -2 ~ TRUE,
+                                    abs(standardized.residuals05) <= 2 ~ FALSE))
+
+fit_salary_df %>% filter(large.residual05 == TRUE) %>% head()
+
+
+plot(fit_salary_2005)
+```
+There is an indication that there are no outliers or influential cases since there are no residuals greater less than -2 or greater than 2.  This is confirmed by the dataframe and the plots.
+
+
+Look for Outliers and/or Influential Cases 2016
+```{r}
+salary_data$residual16 <- resid(fit_salary_2016)
+salary_data$standardized.residuals16 <- rstandard(fit_salary_2016)
+salary_data$studentized.residuals16 <- rstudent(fit_salary_2016)
+salary_data$cooks.distance16 <-cooks.distance(fit_salary_2016)
+salary_data$dfbeta16 <- dfbeta(fit_salary_2016)
+salary_data$dffit16 <- dffits(fit_salary_2016)
+salary_data$leverage16 <- hatvalues(fit_salary_2016)
+salary_data$covariance.ratios16 <- covratio(fit_salary_2016)
+
+fit_salary_df <- salary_data %>% 
+  mutate(large.residual16 = case_when(standardized.residuals16 > 2 | standardized.residuals16 < -2 ~ TRUE,
+                                    abs(standardized.residuals16) <= 2 ~ FALSE))
+
+fit_salary_df %>% filter(large.residual16 == TRUE) %>% head()
+
+plot(fit_salary_2016)
+```
+
+There is an indication that there are no outliers or influential cases since there are no residuals greater less than -2 or greater than 2.  This is confirmed by the dataframe and the plots.
+
 
 
 ***
 # ------Part 3------
 Randomly divide the group of counties from (2) in two halves.  Run a simple regression on each half.  Compare the results from each of these two samples with what you know the population answers to be and discuss any differences you see in these two estimates of the true values and if the confidence intervals from these samples encompass the results of the original population regression from (2). Plot scatterplots of these different datasets with models and use ggplot to add the lines on too.  
+
+
+Let's take our joined dataframe (salary_data) and split the 130 observations in half.  
+```{r}
+
+```
+
+
+
 
 ***
 # ------Part 4------
