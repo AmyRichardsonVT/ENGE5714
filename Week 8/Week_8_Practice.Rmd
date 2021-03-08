@@ -1,0 +1,100 @@
+---
+title: "Week_8_Practice"
+author: "Amy Richardson"
+date: "3/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+install.packages("WRS")
+install.packages("Hmisc")
+
+library(ggplot2)
+library(pastecs)
+library(Hmisc)
+library(tidyr)
+library(Rcmdr)
+library(WRS)
+source("http://dornsife.usc.edu/assets/sites/239/docs/Rallfun-v21")
+```
+```{r}
+spiderlong<-read.delim("spiderLong.dat", header = TRUE)
+spiderwide<-read.delim("spiderWide.dat", header = TRUE)
+```
+
+Create an errorbar plot
+```{r}
+spiderbar <- ggplot(spiderlong, aes(Group, Anxiety))
+spiderbar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + 
+  labs(x = "Type of Stimulus", y = "Anxiety") +
+  scale_y_continuous(limits = c(0, 70), breaks = seq(from = 0, to = 70, by = 10))
+      
+```
+```{r}
+spiderwide$pMean <- (spiderwide$picture + spiderwide$real)/2
+```
+calcualte the grand mean
+```{r}
+grandMean <- mean(c(spiderwide$picture, spiderwide$real))
+spiderwide$adj <- grandMean - spiderwide$pMean
+
+```
+
+ 
+ createa adjusted values for each variable
+```{r}
+spiderwide$picture_adj <- spiderwide$picture + spiderwide$adj
+spiderwide$real_adj <- spiderwide$real + spiderwide$adj
+```
+ 
+create new error chart
+```{r}
+
+adjustedData <- gather(spiderwide, id, measured,  picture_adj:real_adj)
+adjustedData <- adjustedData[, -c(1:4)]
+names(adjustedData) <- c("Group", "Anxiety_Adj")
+adjustedData$Group <- factor(adjustedData$Group, labels = c("Spider Picture", "Real
+Spider"))
+
+bar <- ggplot(adjustedData, aes(Group, Anxiety_Adj))
+bar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") +
+stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + labs(x = "Type of
+Stimulus", y = "Anxiety") + scale_y_continuous(limits = c(0, 70), breaks = seq(from =
+0, to = 70, by = 10))
+```
+
+Run a regression on data
+We did not create dummy variables since R does that automatically by alphbetical order.  In this case Picture =0 and Real Spider = 1
+```{r}
+t.test.GLM <- lm(Anxiety ~ Group, data = spiderlong)
+summary(t.test.GLM)
+```
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
