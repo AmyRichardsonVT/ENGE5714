@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r cars}
-install.packages("WRS")
+install.packages("WRS2")
 install.packages("Hmisc")
 
 library(ggplot2)
@@ -20,8 +20,9 @@ library(pastecs)
 library(Hmisc)
 library(tidyr)
 library(Rcmdr)
-library(WRS)
+library(WRS2)
 source("http://dornsife.usc.edu/assets/sites/239/docs/Rallfun-v21")
+source(file.choose("Rallfun-v38.txt"))
 ```
 ```{r}
 spiderlong<-read.delim("spiderLong.dat", header = TRUE)
@@ -40,7 +41,7 @@ spiderbar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "B
 ```{r}
 spiderwide$pMean <- (spiderwide$picture + spiderwide$real)/2
 ```
-calcualte the grand mean
+calculate the grand mean
 ```{r}
 grandMean <- mean(c(spiderwide$picture, spiderwide$real))
 spiderwide$adj <- grandMean - spiderwide$pMean
@@ -77,16 +78,116 @@ t.test.GLM <- lm(Anxiety ~ Group, data = spiderlong)
 summary(t.test.GLM)
 ```
 
+
+
+Independent t-test for SpiderLong
+```{r}
+ind.t.test <- t.test(Anxiety ~ Group, data = spiderlong)
+ind.t.test
+```
+Robust tests
+Independent groups
+
+```{r}
+yuen(spiderwide$real, spiderwide$picture)
+yuenbt(spiderwide$real, spiderwide$picture, nboot = 2000)
+
+
+pb2gen(spiderwide$real, spiderwide$picture, alpha=.05, nboot=2000, est=mom)
+```
+
+
+Effect sizes
+```{r}
+t<-ind.t.test$statistic[[1]]
+df<-ind.t.test$parameter[[1]]
+r <- sqrt(t^2/(t^2+df))
+round(r, 3)
+```
+
+normality of differences
+```{r}
+spiderwide$diff <- spiderwide$real-spiderwide$picture
+stat.desc(spiderwide$diff, basic = FALSE, desc = FALSE, norm = TRUE)
+```
+The output shows that the distribution of differences is not significantly different from normal, W = 0.956, p > .05. As such, it looks as though we can assume that our differences are normal and that, therefore, the sampling distribution of these differences is normal too.
+
+
+
+
+Dependent t-test
+```{r}
+stat.desc(spiderwide, basic = FALSE, norm = TRUE)
+
+dep.t.test2<-t.test(Anxiety ~ Group, data = spiderlong, paired = TRUE)
+dep.t.test2
+
+
+```
+Robust Dependent t test
+```{r}
+yuend(spiderwide$real, spiderwide$picture, tr=.2, alpha=.05)
+ydbt(spiderwide$real, spiderwide$picture, tr=.2, alpha=.05, nboot = 2000)
+
+bootdpci(spiderwide$real, spiderwide$picture, est=tmean, nboot=2000)
+```
+
+Effect sizes
+```{r}
+t<-dep.t.test2$statistic[[1]]
+df<-dep.t.test2$parameter[[1]]
+r <- sqrt(t^2/(t^2+df))
+round(r, 3)
+```
+
+Smart Alex's tasks #1
+
+Independent t-test
+```{r}
+book<-read.delim("Penis.dat", header = TRUE)
+
+stat.desc(book, basic = FALSE, norm = TRUE)
+
+ind.t.test.book <- t.test(happy ~ book, data = book)
+ind.t.test.book
+```
+
+Effect Size
+```{r}
+t<-ind.t.test.book$statistic[[1]]
+df<-ind.t.test.book$parameter[[1]]
+r <- sqrt(t^2/(t^2+df))
+round(r, 3)
+```
+
+On average, the reported relationship happiness after reading Marie Claire (M = 24.20), was significantly higher than after reading Women Are from Bras, Men Are from Penis (M = 20.00), t(18) = −2.12, p < .05, r = .45.
  
  
  
+ Smart Alex's tasks #2
+ 
+```{r}
+book2 <- read.delim("Field&Hole.dat", header = TRUE)
+stat.desc(book2, basic = FALSE, norm = TRUE)
+
+```
  
  
+ Dependent t-test
+```{r}
+dep.t.test.book <- t.test(book2$women, book2$statbook, data = book2, paired = TRUE)
+dep.t.test.book
+```
  
- 
- 
- 
- 
+ Effect Size
+```{r}
+t<-dep.t.test.book$statistic[[1]]
+df<-dep.t.test.book$parameter[[1]]
+r <- sqrt(t^2/(t^2+df))
+round(r, 3)
+```
+
+From just these tests we see that on average, the reported relationship happiness after reading Women Are from Bras, Men Are from Penis, was significantly higher than after reading Field and Hole. However the effect size is quite small.  Even though the finding was highly statistically significant, the size of hte effect is very small and so represents a trivial finding.
  
  
  
