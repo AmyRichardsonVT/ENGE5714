@@ -1,0 +1,93 @@
+---
+title: "Week_9_Practice"
+author: "Amy Richardson"
+date: "3/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+######Install packages
+```{r}
+install.packages("granova")
+install.packages("car")
+install.packages("pastecs")
+install.packages("multcomp")
+install.packages("compute.es")
+install.packages("Rcmdr", dependencies = TRUE)
+install.packages("WRS", repos="http://R-Forge.R-project.org")
+```
+
+
+#Initiate packages
+```{r}
+library(ggplot2)
+library(granova)
+library(car)
+library(Rcmdr)
+library(pastecs)
+library(multcomp)
+library(compute.es)
+library(WRS2)
+```
+
+Read in Data
+```{r}
+dummy_df<-read.delim("Dummy.dat", header = TRUE)
+```
+
+Create Multiple Regression Model
+```{r}
+fit_dummy_multiple <- lm(libido ~ dummy1 + dummy2, data = dummy_df)
+summary(fit_dummy_multiple)
+```
+
+Read in Data
+```{r}
+viagraData<-read.delim("Viagra.dat", header = TRUE)
+```
+
+Explore the data (step 2)
+```{r}
+line <- ggplot(viagraData, aes(dose, libido))
+line + stat_summary(fun.y = mean, geom = "line", size = 1, aes(group=1), colour = "#FF6633") + stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, size = 0.75, colour = "#990000") + stat_summary(fun.y = mean, geom = "point", size = 4, colour = "#990000") + stat_summary(fun.y = mean, geom = "point", size = 3, colour = "#FF6633") + labs(x = "Dose of Viagra", y = "Mean Libido")
+
+
+```
+
+```{r}
+by(viagraData$libido, viagraData$dose, stat.desc)
+```
+
+```{r}
+leveneTest(viagra$libido, viagraData$dose, center = median)
+```
+
+This output shows that Levene's tes is very non-significant 
+F(2, 12) = 0.118, p 0.89  
+This means taht for these data the variances are very similar (hence the high probability).
+
+Run the model:
+```{r}
+viagraModel <- aov(libido ~ dose, data = viagra)
+summary(viagraModel)
+```
+```{r}
+plot(viagraModel)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
