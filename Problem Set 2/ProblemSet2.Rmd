@@ -114,13 +114,10 @@ print(my_spearman_correlations)
 All of the variables are continuous and from inspection are normally distributed so we will use Pearson's r when addressing correlation.  Below is a compiled table of the results:
 
 ![Correlation Results](P1.png)
-
-The percentage of degrees earned at a 2 year institutions are perfectly, inversely correlated with the degrees earned at a 4 year institutions.  This makes sense because there were only two types of institutions in the data set, 2-year and 4-year.  The sum of the two percentages from each county is 100%.  
-
-Percentage of total Engineering degrees from 4-year institutions was significantly correlated with percentage to degrees from 2-year institutions (r = -0.4773) and degrees from 4-year institutions (r = 0.4773).  The values indicate that there is a medium effect size.  These values are the same but opposite sign.  This follows the previous rationale given the relationship between percentage of 2 year and 4 year degrees.
-
-Percentage of all STEMH degree from a 4-year that were CS/IT were significantly related to percentage of 2-year degrees (r = -0.1984), percentage of 4-year degrees (r = 0.1294), and percentages of Engineering degrees from 4-year institutions.  The values indicate that there is a small effect size.
-
+Interpretation:  
+* The percentage of degrees earned at a 2 year institutions are perfectly, inversely correlated with the degrees earned at a 4 year institutions.  This makes sense because there were only two types of institutions in the data set, 2-year and 4-year.  The sum of the two percentages from each county is 100%.   
+* Percentage of total Engineering degrees from 4-year institutions was significantly correlated with percentage to degrees from 2-year institutions (r = -0.4773) and degrees from 4-year institutions (r = 0.4773).  The values indicate that there is a medium effect size.  These values are the same but opposite sign.  This follows the previous rationale given the relationship between percentage of 2 year and 4 year degrees.  
+* Percentage of all STEMH degree from a 4-year that were CS/IT were significantly related to percentage of 2-year degrees (r = -0.1984), percentage of 4-year degrees (r = 0.1294), and percentages of Engineering degrees from 4-year institutions.  The values indicate that there is a small effect size.  
 
 
 ***
@@ -243,7 +240,7 @@ For both the 2005 and 2016 the linear regression model significantly predicts a 
 ![Linear Regression Results](P2.png)  
 Interpretation: 
 
-* The positive b1 value indicates a direct relationship between principal and teacher salaries - as one 2.  increases/decreases that causes an increase/decrease in the other.  This model indicates that with a $100 increase in the principal salary the teachers salary would increase $37.34 in 2005 and $36.36 in 2016.
+* The positive b1 value indicates a direct relationship between principal and teacher salaries - as one increases/decreases that causes an increase/decrease in the other.  This model indicates that with a $100 increase in the principal salary the teachers salary would increase $37.34 in 2005 and $36.36 in 2016.
 * In both years presented the R-squared value is relatively large suggesting that the the model overall predicts the teacher's salary significantly well.
 * The Pf(>|t|) values indicated above reject the null hypothesis that there is no relationship between principal and teacher salary.
 * The significance value of the F statistic was less than 0.001 which indicates that there is less than a 0.1% change that an F-ratio this large would happen if the null hypothesis were true.
@@ -307,7 +304,7 @@ Interpretation:
 
 ***
 # ------Part 4------
-Run a multiple regression.  Choose an outcome variable of interest from the one of the degree percentage variables.  Choose one predictor variable from the tables provided to pretend it is the theory variable. Choose two additional predictor variables from the tables to be the “additional” possible predictor variables. Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.
+Run a multiple regression.  Choose an outcome variable of interest from the one of the degree percentage variables.  Choose one predictor variable from the tables provided to pretend it is the theory variable. Choose two additional predictor variables from the tables to be the “additional” possible predictor variables. Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.  
 
 
 
@@ -347,7 +344,7 @@ char_degree <- char_degree[-c(29), ]
 ```
 
 
-Using the Hierarchical method I am going to start using ontime high school graduation rates to predict the percent of STEM-H degrees and higher education institutions.
+Using the Hierarchical method I am going to start using ontime high school graduation rates to predict the percent of STEM-H degrees in higher education institutions.
 ```{r}
 fit_single_degree <- lm(X.STEMHall ~ HS2015, data = char_degree)
 summary(fit_single_degree)
@@ -436,8 +433,15 @@ By inspection of the histogram and qqplot the sample looks like a normal distrib
 
 
 ### Report on Results
-*Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.*
-Although the assumptions have been met and there are no outliers and influential cases, this model is not good for predicting 
 
+Although the assumptions have been met and there are no outliers and influential cases, this model is not good for predicting percent of STEM-H degrees in higher education institutions.   The single-linear regression model has an r-squared value of 0.05 however the the Pf(>|t|) and the significance value of the F-statistic are both less than 0.05 suggesting that that the null hypothesis is not valid.  When additional predictor variables were added to the model the R-squared value increased slightly (0.06) but the low value indicates that the model is not significant.  
+
+The practical significance of the regression coefficients are as follows:
+
+* The negative b1 value associated with high school graduation rates indicates an indirect relationship between high school graduation rates and percent of STEM-H degrees - as one   increases/decreases that causes the opposite motion (decrease/increase) in the other.  This model indicates that with a 4% increase in high school graduation rates the percent of STEM-H degrees would decrease by 1%.  
+* The positive b1 value associated with Composite Index indicates a direct relationship between Composite Index and percent of STEM-H degrees - as one increases/decreases that causes an increase/decrease in the other.  This model indicates that with a 1 point increase in Composite Index the percent of STEM-H degrees would increase by 0.01.  
+* The positive b1 value associated with Perfect of children living below poverty level  indicates a direct relationship between the percent living under the poverty level and percent of STEM-H degrees - as one increases/decreases that causes an increase/decrease in the other.  This model indicates that with a 1 point increase in percent poverty the percent of STEM-H degrees would increase by 0.002.  
+
+Logically this doesn't make much sense particularly with the last predictor which is another indication that the model is not a good fit.
 
 xxxxxxx
