@@ -22,8 +22,6 @@ library(psych)
 library(ggplot2)
 library(tidyverse)
 library(broom)
-library(boot)
-library(QuantPsyc)
 ```
 
 ***
@@ -403,11 +401,11 @@ Leverage, Cooks Distance, and Covariance Ratio for the 7 cases
 ```{r}
 fit_multiple_df[fit_multiple_df$large.residual,c("cooks.distance", "leverage", "covariance.ratios", "standardized.residuals")]
 ```
-
 * Analysis
      + Since none of the cases has a Cook's distance greater than 1, none of these cases are having an undue influence on the model.
      + The average leverage for this model is 0.043 [(k+1)/n] so we are looking for values three times as large (0.129).  Only one case is over twice as large (row 52).
      + The covariance ratio limits for this model are 0.872 and 1.128 [1 +/- (3(k+1))/n].  The only case that falls outside of this range is row 81 however given the Cook's distance for this case we will leave it in the model.
+ 
      
 Assessing the Assumption of Independence
 ```{r}
@@ -431,17 +429,15 @@ We can safely conclude that there is no collinieary within out data.
 Assumption about Residuals
 ```{r}
 hist(fit_multiple_df$studentized.residuals)
-qqplot.resid <- qplot(sample = fit_multiple_df$studentized.residuals, stat = "qq") + 
-  labs(x = "Theoretical Values", y = "Observed Values")
-qqplot.resid
-```
 
+```
+By inspection of the histogram and qqplot the sample looks like a normal distribution.
 
 
 
 ### Report on Results
 *Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.*
-
+Although the assumptions have been met and there are no outliers and influential cases, this model is not good for predicting 
 
 
 xxxxxxx
