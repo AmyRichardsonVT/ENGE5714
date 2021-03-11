@@ -22,6 +22,8 @@ library(psych)
 library(ggplot2)
 library(tidyverse)
 library(broom)
+library(boot)
+library(QuantPsyc)
 ```
 
 ***
@@ -84,12 +86,6 @@ my_correlations <- percent_degrees %>% select(X.2r, X.4yr, X.EngTot4yr, X.CSSTEM
 print(my_correlations)
 ```
 
-Run Spearman's Corelation
-```{r}
-my_spearman_correlations <- percent_degrees %>% select(X.2r, X.4yr, X.EngTot4yr, X.CSSTEMH4yr) %>% cor(method="spearman")
-print(my_spearman_correlations)
-```
-
 Get p-values
 ```{r}
 cor.test(percent_degrees$X.2r, percent_degrees$X.EngTot4yr)
@@ -104,21 +100,28 @@ cor.test(percent_degrees$X.4yr, percent_degrees$X.EngTot4yr)
 cor.test(percent_degrees$X.4yr, percent_degrees$X.CSSTEMH4yr)
 ```
 
+```{r}
+cor.test(percent_degrees$X.CSSTEM, percent_degrees$X.EngTot4yr)
+```
+
+Run Spearman's Corelation
+```{r}
+my_spearman_correlations <- percent_degrees %>% select(X.2r, X.4yr, X.EngTot4yr, X.CSSTEMH4yr) %>% cor(method="spearman")
+print(my_spearman_correlations)
+```
+
+
+
 ### Report on Results
-*report which correlations are statistically significant (if any) and comment on the strength of any relationships you observe*
-Pearson - Use if you have:
+All of the variables are continuous and from inspection are normally distributed so we will use Pearson's r when addressing correlation.  Below is a compiled table of the results:
 
-Large (> 30) sample size
-Normally distributed data
-Interval data
-Values for r  lie in [-1,1]
+![Correlation Results](P1.png)
 
-Rules of thumb for interpretation:
+The percentage of degrees earned at a 2 year institutions are perfectly, inversely correlated with the degrees earned at a 4 year institutions.  This makes sense because there were only two types of institutions in the data set, 2-year and 4-year.  The sum of the two percentages from each county is 100%.  
 
-very small effect size: 0 < ∣r∣ < 0.1
-small effect size: 0.1 < ∣r∣ < 0.3
-medium effect size: 0.3 < ∣r∣ < 0.5
-large effect size: 0.5 < ∣r∣ < 1
+Percentage of total Engineering degrees from 4-year institutions was significantly correlated with percentage to degrees from 2-year institutions (r = -0.4773) and degrees from 4-year institutions (r = 0.4773).  The values indicate that there is a medium effect size.  These values are the same but opposite sign.  This follows the previous rationale given the relationship between percentage of 2 year and 4 year degrees.
+
+Percentage of all STEMH degree from a 4-year that were CS/IT were significantly related to percentage of 2-year degrees (r = -0.1984), percentage of 4-year degrees (r = 0.1294), and percentages of Engineering degrees from 4-year institutions.  The values indicate that there is a small effect size.
 
 
 
@@ -126,12 +129,12 @@ large effect size: 0.5 < ∣r∣ < 1
 # ------Part 2------
 Run a simple regression using principal salary in a county to predict teacher salary in that county. Interpret the results of the model and discuss how good the fit is. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.
 
-Read in Data and Create a DataFrame of  salient columns.
-Note that in the original data set the following sections were removed:
-     + Governor's Schools
-     + Special Education Regoinal Programs
-     + Career and Technical (Vocational) Education Regional Programs
-     + Regional Alternative Education Programs
+Read in Data and Create a DataFrame of  salient columns.  
+Note that in the original data set the following sections were removed:  
+     + Governor's Schools  
+     + Special Education Regoinal Programs  
+     + Career and Technical (Vocational) Education Regional Programs  
+     + Regional Alternative Education Programs  
      
 ```{r warning=FALSE}
 prinData <- read.csv("Prin_Salary.csv", header = TRUE)
@@ -211,7 +214,6 @@ fit_salary_df %>% filter(large.residual05 == TRUE) %>% head()
 
 plot(fit_salary_2005)
 ```
-There is an indication that there are no outliers or influential cases since there are no residuals greater less than -2 or greater than 2.  This is confirmed by the dataframe and the plots.
 
 
 Look for Outliers and/or Influential Cases 2016
@@ -235,11 +237,20 @@ plot(fit_salary_2016)
 ```
 
 
-There is an indication that there are no outliers or influential cases since there are no residuals greater less than -2 or greater than 2.  This is confirmed by the dataframe and the plots.
 
 ### Report on Results
-*Discuss in practical terms how to interpret the regression coefficient*
-xxxxxxx
+
+For both the 2005 and 2016 the linear regression model significantly predicts a teacher's salary given the principal's salary.  The table below shows the pertinent values.
+
+![Linear Regression Results](P2.png)  
+Interpretation: 
+
+* The positive b1 value indicates a direct relationship between principal and teacher salaries - as one 2.  increases/decreases that causes an increase/decrease in the other.  This model indicates that with a $100 increase in the principal salary the teachers salary would increase $37.34 in 2005 and $36.36 in 2016.
+* In both years presented the R-squared value is relatively large suggesting that the the model overall predicts the teacher's salary significantly well.
+* The Pf(>|t|) values indicated above reject the null hypothesis that there is no relationship between principal and teacher salary.
+* The significance value of the F statistic was less than 0.001 which indicates that there is less than a 0.1% change that an F-ratio this large would happen if the null hypothesis were true.
+* There no indication of outliers or influential cases in both years since there are no residuals greater less than -2 or greater than 2.  This is confirmed by the dataframe and the plots.
+ 
 
 ***
 # ------Part 3------
@@ -280,23 +291,41 @@ salary_sample2 %>%
   labs(title = "2005:  Sample Group 2", x = "Principal Salaries", y = "Teacher Salaries")
 ```
 
+Confidence Intervals of Samples (compare to Population b0 = 14260 and b1= 0.374)
+```{r}
+confint(fit_salary1_2005, level = 0.95)
+```
+```{r}
+confint(fit_salary2_2005, level = 0.95)
+```
+
 ### Report on Results
-*discuss any differences you see in these two estimates of the true values and if the confidence intervals from these samples encompass the results of the original population regression from *
-xxxxxxx
+![Linear Regression Results](P3.png)  
+Interpretation: 
+
+* The table above compares the samples with the population.
+* While there are differences in the regression coefficients from the two samples and the population, the 95% confidence intervals for each sample include the regression coefficients of the population.  
+
 
 ***
 # ------Part 4------
 Run a multiple regression.  Choose an outcome variable of interest from the one of the degree percentage variables.  Choose one predictor variable from the tables provided to pretend it is the theory variable. Choose two additional predictor variables from the tables to be the “additional” possible predictor variables. Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.
 
-I will use Percentage of all STEM-H degree as the outcome variable all for 2015.
+
 
 
 Read in the new data, select the relevant columns, ensure the data are numbers, and join data.
+* I will use the following to predict the composite index for each county:
+     + X.STEMHall = Percent of total degrees awarded during five-year time period that were STEM-H degree
+     + HS2015 = On-time high school graduation rate, [2015]
+     + Percent of children ages 0-17 living below 50% of the federal poverty level [2011-15]
+     + Comp_index_2014_2016 = Virginia Composite Index [2014-2016] (CI) is a formula determined by the Virginia General Assembly to calculate localities' ability to pay for K-12 education the quality of the state Standards of Learning (SOL).
+
 ```{r}
 VA_chars <- read.csv("VA_characteristics.csv", header = TRUE)
 
 VA_chars_sub <- VA_chars %>%
-  select(Locality, HS2015, Unemploy2015, Comp_index_2014_2016) 
+  select(Locality, HS2015, Comp_index_2014_2016, PerPovertyBelow50) 
 
 degree_sub <- all_degrees %>%
   select(div_name, X.STEMHall) 
@@ -307,36 +336,112 @@ VA_chars_sub <- VA_chars_sub %>%
   mutate_at(vars(starts_with ("HS")), as.numeric) 
 
 VA_chars_sub <- VA_chars_sub %>%
-  mutate_at(vars(starts_with ("Une")), as.numeric) 
+  mutate_at(vars(starts_with ("Comp")), as.numeric)
 
 VA_chars_sub <- VA_chars_sub %>%
-  mutate_at(vars(starts_with ("Comp")), as.numeric)
+  mutate_at(vars(starts_with ("PerPo")), as.numeric)
+
 
 char_degree <- inner_join(VA_chars_sub, degree_sub, by = "div_name")
 
+char_degree <- char_degree[-c(29), ]
+
 ```
 
-NEED TO PICK NEW VARIABLES.....:)
-Using the Hierarchical method I am going to start using unemployment rates to predict % of STEM-H degrees at all institutions of higher ed.
+
+Using the Hierarchical method I am going to start using ontime high school graduation rates to predict the percent of STEM-H degrees and higher education institutions.
 ```{r}
-fit_single_degree <- lm(X.STEMHall ~ Comp_index_2014_2016, data = char_degree)
+fit_single_degree <- lm(X.STEMHall ~ HS2015, data = char_degree)
 summary(fit_single_degree)
 
+```
+Plot linear regression
+```{r}
 char_degree %>% 
-  ggplot(aes(x = Unemploy2015, y = X.STEMHall)) +
+  ggplot(aes(x = HS2015, y = X.STEMHall)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(title = "Single Regression 2015",  x = "Unemployment Rate", y = "Percentage of STEM-H Degrees")
+  labs(title = "Single Regression 2015",  x = "Ontime HS Graduation Rates", y = "Percentage of STEM-H Degrees")
 ```
 
+Create a multiple linear regression model to predict the percent of STEM-H degrees and higher education using Ontime HS graduation rates, Virginia Composite Index, and percent of children ages 0-17 living below 50% of the federal poverty level.
+```{r}
+fit_multiple_degree <- lm(formula = X.STEMHall ~ HS2015 + Comp_index_2014_2016 + PerPovertyBelow50, data = char_degree)
+summary(fit_multiple_degree)
+```
+
+```{r}
+char_degree$residual <- resid(fit_multiple_degree)
+char_degree$standardized.residuals <- rstandard(fit_multiple_degree)
+char_degree$studentized.residuals <- rstudent(fit_multiple_degree)
+char_degree$cooks.distance <-cooks.distance(fit_multiple_degree)
+char_degree$dfbeta <- dfbeta(fit_multiple_degree)
+char_degree$dffit <- dffits(fit_multiple_degree)
+char_degree$leverage <- hatvalues(fit_multiple_degree)
+char_degree$covariance.ratios <- covratio(fit_multiple_degree)
+
+fit_multiple_df <- char_degree %>% 
+  mutate(large.residual = case_when(standardized.residuals > 2 | standardized.residuals < -2 ~ TRUE,
+                                    abs(standardized.residuals) <= 2 ~ FALSE))
+
+fit_multiple_df %>% filter(large.residual == TRUE) %>% head()
+
+plot(fit_multiple_degree)
+
+
+```
+
+Check for outliers
+```{r}
+fit_multiple_df$large.residual <- fit_multiple_df$standardized.residuals > 2 | fit_multiple_df$standardized.residuals < -2 
+fit_multiple_df[fit_multiple_df$large.residual,c("div_name", "HS2015", "Comp_index_2014_2016", "PerPovertyBelow50", "X.STEMHall", "standardized.residuals")]
+
+```
+There are 94 observations and 7 (7.4%) of them have large residuals.  We will investigate this further.
+
+Leverage, Cooks Distance, and Covariance Ratio for the 7 cases
+```{r}
+fit_multiple_df[fit_multiple_df$large.residual,c("cooks.distance", "leverage", "covariance.ratios", "standardized.residuals")]
+```
+
+* Analysis
+     + Since none of the cases has a Cook's distance greater than 1, none of these cases are having an undue influence on the model.
+     + The average leverage for this model is 0.043 [(k+1)/n] so we are looking for values three times as large (0.129).  Only one case is over twice as large (row 52).
+     + The covariance ratio limits for this model are 0.872 and 1.128 [1 +/- (3(k+1))/n].  The only case that falls outside of this range is row 81 however given the Cook's distance for this case we will leave it in the model.
+     
+Assessing the Assumption of Independence
+```{r}
+dwt(fit_multiple_degree)
+```
+
+Assumption of Multicollinearity
+```{r}
+vif(fit_multiple_degree)
+mean(vif(fit_multiple_degree))
+1/vif(fit_multiple_degree)
+```
+* Analysis
+     + Since none of the cases  have a VIF greater than 10 there is no cause for concern.
+     + The average VIF is not substantially greater than 1 so the regression is not biased
+     + The tolerance is not below 0.2.
+We can safely conclude that there is no collinieary within out data.   
 
 
 
-
+Assumption about Residuals
+```{r}
+hist(fit_multiple_df$studentized.residuals)
+qqplot.resid <- qplot(sample = fit_multiple_df$studentized.residuals, stat = "qq") + 
+  labs(x = "Theoretical Values", y = "Observed Values")
+qqplot.resid
+```
 
 
 
 
 ### Report on Results
 *Interpret the results of the models and discuss how good a fit are the models, including whether or not the second level model is better than the first. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.  Compute relevant diagnostics, produce and interpret plots, etc. to demonstrate your knowledge of various means of checking assumptions.*
+
+
+
 xxxxxxx
