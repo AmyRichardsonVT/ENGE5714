@@ -114,22 +114,25 @@ print(my_spearman_correlations)
 All of the variables are continuous and from inspection are normally distributed so we will use Pearson's r when addressing correlation.  Below is a compiled table of the results:
 
 ![Correlation Results](P1.png)
-Interpretation:  
-* The percentage of degrees earned at a 2 year institutions are perfectly, inversely correlated with the degrees earned at a 4 year institutions.  This makes sense because there were only two types of institutions in the data set, 2-year and 4-year.  The sum of the two percentages from each county is 100%.   
-* Percentage of total Engineering degrees from 4-year institutions was significantly correlated with percentage to degrees from 2-year institutions (r = -0.4773) and degrees from 4-year institutions (r = 0.4773).  The values indicate that there is a medium effect size.  These values are the same but opposite sign.  This follows the previous rationale given the relationship between percentage of 2 year and 4 year degrees.  
-* Percentage of all STEMH degree from a 4-year that were CS/IT were significantly related to percentage of 2-year degrees (r = -0.1984), percentage of 4-year degrees (r = 0.1294), and percentages of Engineering degrees from 4-year institutions.  The values indicate that there is a small effect size.  
 
+Interpretation: 
+
+* The percentage of degrees earned at a 2 year institutions are perfectly, inversely correlated with the degrees earned at a 4 year institutions.  This makes sense because there were only two types of institutions in the data set, 2-year and 4-year.  The sum of the two percentages from each county is 100%. 
+* Percentage of total Engineering degrees from 4-year institutions was significantly correlated with percentage to degrees from 2-year institutions (r = -0.4773) and degrees from 4-year institutions (r = 0.4773).  The values indicate that there is a medium effect size.  These values are the same but opposite sign.  This follows the previous rationale given the relationship between percentage of 2 year and 4 year degrees.
+* Percentage of all STEMH degree from a 4-year that were CS/IT were significantly related to percentage of 2-year degrees (r = -0.1984), percentage of 4-year degrees (r = 0.1294), and percentages of Engineering degrees from 4-year institutions.  The values indicate that there is a small effect size.
 
 ***
 # ------Part 2------
 Run a simple regression using principal salary in a county to predict teacher salary in that county. Interpret the results of the model and discuss how good the fit is. Discuss in practical terms how to interpret the regression coefficient. Evaluate if there are any outliers and adjust the model if needed.
 
 Read in Data and Create a DataFrame of  salient columns.  
-Note that in the original data set the following sections were removed:  
-     + Governor's Schools  
-     + Special Education Regoinal Programs  
-     + Career and Technical (Vocational) Education Regional Programs  
-     + Regional Alternative Education Programs  
+
+Note that in the original data set the following sections were removed: 
+
+* Governor's Schools  
+* Special Education Regional Programs  
+* Career and Technical (Vocational) Education Regional Programs  
+* Regional Alternative Education Programs
      
 ```{r warning=FALSE}
 prinData <- read.csv("Prin_Salary.csv", header = TRUE)
@@ -310,6 +313,7 @@ Run a multiple regression.  Choose an outcome variable of interest from the one 
 
 
 Read in the new data, select the relevant columns, ensure the data are numbers, and join data.
+
 * I will use the following to predict the composite index for each county:
      + X.STEMHall = Percent of total degrees awarded during five-year time period that were STEM-H degree
      + HS2015 = On-time high school graduation rate, [2015]
