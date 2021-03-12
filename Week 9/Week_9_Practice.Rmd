@@ -65,9 +65,9 @@ by(viagraData$libido, viagraData$dose, stat.desc)
 leveneTest(viagra$libido, viagraData$dose, center = median)
 ```
 
-This output shows that Levene's tes is very non-significant 
+This output shows that Levene's test is very non-significant 
 F(2, 12) = 0.118, p 0.89  
-This means taht for these data the variances are very similar (hence the high probability).
+This means that for these data the variances are very similar (hence the high probability).
 
 Run the model:
 ```{r}
@@ -76,6 +76,37 @@ summary(viagraModel)
 ```
 ```{r}
 plot(viagraModel)
+```
+
+Welch Test
+```{r}
+oneway.test(libido~dose, data = viagraData)
+```
+
+Post Hoc Tests
+```{r}
+pairwise.t.test(viagraData$libido, viagraData$dose, p.adjust.method = "bonferroni")
+pairwise.t.test(viagraData$libido, viagraData$dose, p.adjust.method = "BH")
+
+
+```
+
+Tukey and Dunnett
+```{r}
+postHocs<-glht(viagraModel, linfct = mcp(dose = "Tukey"))
+summary(postHocs)
+confint(postHocs)
+
+postHocs<-glht(viagraModel, linfct = mcp(dose = "Dunnett"), base = 1)
+summary(postHocs)
+confint(postHocs)
+
+```
+
+Effect Sizes
+```{r}
+summary.lm(viagraModel)
+
 ```
 
 
