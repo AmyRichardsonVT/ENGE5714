@@ -1,0 +1,16 @@
+---
+title: "Problem_Set_3"
+author: "Amy Richardson"
+date: "3/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read in Data
+```{r}
+sat_df <- read.csv("SAT.csv", header = TRUE)
+```
+
