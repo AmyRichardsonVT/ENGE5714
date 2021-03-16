@@ -9,3 +9,121 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Install Packages
+```{r}
+install.packages("car")
+install.packages("clinfun")
+install.packages("ggplot2")
+install.packages("pastecs")
+install.packages("pgirmess")  
+```
+
+Install libraries
+```{r}
+library(car)
+library(clinfun)
+library(ggplot2)
+library(pastecs)
+library(pgirmess)
+```
+
+Read in data
+```{r}
+drugData<-read.delim("Drug.dat", header = TRUE)
+
+```
+
+
+Exploratory analysis
+```{r}
+by(drugData[,c(2:3)], drugData$drug, stat.desc, basic=FALSE, norm=TRUE)
+leveneTest(drugData$sundayBDI, drugData$drug, center = "mean")
+leveneTest(drugData$wedsBDI, drugData$drug, center = "mean")
+```
+
+The Sunday data distribution for ecstasy, p < 0.05, appreas to be non-normal where as the alcohol data, W = 0.96, ns, are normal.  Fro the Wednesday dta, the dta for ecstasy are normal, W = 0.94, ns, the data for alcohol appear to be significantly non-normal, W = 0.75, p < 0.01.  
+
+
+Since Levene's tests for Sunday and for Wednesday are not significantly different, the homogeneity of variance has been met.
+
+Run Wilcoxon Rank-Sum TEst
+```{r}
+sunModel<-wilcox.test(sundayBDI ~ drug, data = drugData, exact = FALSE, correct= FALSE)
+sunModel
+wedModel<-wilcox.test(wedsBDI ~ drug, data = drugData, exact = FALSE, correct= FALSE)
+wedModel
+```
+Effect Size
+```{r}
+rFromWilcox<-function(wilcoxModel, N){
+	z<- qnorm(wilcoxModel$p.value/2)
+	r<- z/ sqrt(N)
+	cat(wilcoxModel$data.name, "Effect Size, r = ", r)
+}
+
+rFromWilcox(sunModel, 20)
+
+```
+
+
+
+```{r}
+rFromWilcox(wedModel, 20)
+```
+
+
+
+Wilcoxon Signed-Rank Test
+First descriptive statistics on each group
+
+```{r}
+drugData$BDIchange<-drugData$wedsBDI-drugData$sundayBDI
+by(drugData$BDIchange, drugData$drug, stat.desc, basic = FALSE, norm = TRUE)
+
+boxplot<-ggplot(drugData, aes(drug, BDIchange)) + geom_boxplot()
+boxplot
+
+alcoholData<-subset(drugData, drug == "Alcohol")
+ecstasyData<-subset(drugData, drug == "Ecstasy")
+```
+
+Run test
+```{r}
+alcoholModel<-wilcox.test(alcoholData$wedsBDI, alcoholData$sundayBDI,  paired = TRUE, correct= FALSE)
+alcoholModel
+
+rFromWilcox(alcoholModel, 20)
+
+ecstasyModel<-wilcox.test(ecstasyData$wedsBDI, ecstasyData$sundayBDI, paired = TRUE, correct= FALSE)
+ecstasyModel
+
+rFromWilcox(ecstasyModel, 20)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
