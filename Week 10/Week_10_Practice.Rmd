@@ -158,15 +158,80 @@ Friedman's ANOVA
 dietData<-read.delim("Diet.dat", header = TRUE)
 ```
 
-
-
-
+exlore data
+```{r}
 stat.desc(dietData, basic = FALSE, norm = TRUE)
+```
 
-library(reshape)
-
+Run Frieman's test
+```{r}
 friedman.test(as.matrix(dietData))
+```
+
+Post Hoc Tests
+```{r}
 friedmanmc(as.matrix(dietData))
+```
+_________________________________________
+Chapter 18 
+
+```{r}
+install.packages("gmodels")
+library(gmodels)
+library(MASS)
+```
+
+read in data
+```{r}
+catsData<-read.delim("Cats.dat", header = TRUE)
+```
+
+enter contingency table data
+```{r}
+food <- c(10, 28)
+affection <- c(114, 48)
+catsTable <- cbind(food, affection)
+```
+
+
+Do the chi-square test
+
+```{r}
+CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
+```
+
+
+
+
+
+
+CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
