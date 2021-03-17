@@ -133,14 +133,60 @@ Plot data
 ggplot(soyaData, aes(Soya, Sperm)) + geom_boxplot() +
   labs(y = "Sperm Count", x = "Number of Soya Meals Per Week")
 ```
-
-
-
-
+Post Hoc tests
+```{r}
 kruskalmc(Sperm ~ Soya, data = soyaData)
-kruskalmc(Sperm ~ Soya, data = soyaData, cont = 'two-tailed')
+```
 
+since none of the observations are greater than the critical difference
+
+Could do more focused comparisons
+```{r}
+kruskalmc(Sperm ~ Soya, data = soyaData, cont = 'two-tailed')
+```
+
+
+Testing for trends:
+```{r}
 jonckheere.test(soyaData$Sperm, as.numeric(soyaData$Soya))
+```
+
+
+Friedman's ANOVA 
+
+```{r}
+dietData<-read.delim("Diet.dat", header = TRUE)
+```
+
+
+
+
+stat.desc(dietData, basic = FALSE, norm = TRUE)
+
+library(reshape)
+
+friedman.test(as.matrix(dietData))
+friedmanmc(as.matrix(dietData))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
