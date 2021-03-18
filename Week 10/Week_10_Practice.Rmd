@@ -205,12 +205,6 @@ CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expec
 
 
 
-CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
-
-
-
-
-
 
 
 

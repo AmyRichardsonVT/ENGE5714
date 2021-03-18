@@ -14,3 +14,132 @@ Read in Data
 sat_df <- read.csv("SAT.csv", header = TRUE)
 ```
 
+Change Character columns (Race.Ethnicity and Sex) to factors.
+```{r}
+sat_df <- sat_df %>% 
+  mutate(Sex_factor = case_when(Sex == "Male" ~ 1,
+                                 Sex == "Female" ~ 0))
+
+sat_df <- sat_df %>% 
+  mutate(Race.Ethnicity_factor = case_when(Race.Ethnicity == "Asian" ~ 1,
+                                 Race.Ethnicity == "White" ~ 0,
+                                 Race.Ethnicity == "Black/African American" ~ 2,
+                                 Race.Ethnicity == "Hispanic/Latio" ~ 3,
+                                 Race.Ethnicity == "Two or More Races" ~ 4,
+                                 Race.Ethnicity == "No Response" ~ 5))
+
+```
+
+***
+## Part 1
+There is no difference between scores on the English section of the SAT among racial/ethnic groups. 
+
+
+
+***
+## Part 2
+The mean of the scores in the sample for the English section on the SAT is 550. (meaning not significantly different from 550)
+
+
+Run one sample t-test
+```{r}
+num_3_ttest <- t.test(sat_df$ERW, mu = 550)
+num_3_ttest
+```
+
+effect size
+```{r}
+t<-num_3_ttest$statistic[[1]]
+df<-num_3_ttest$parameter[[1]]
+r <- sqrt(t^2/(t^2+df))
+round(r, 3)
+```
+
+
+***
+## Part 3
+The observed distribution of values of the mathematics section is approximately normal.  
+
+
+
+***
+## Part 4
+There is no difference between male and female scores on the mathematics section of the SAT.
+
+
+Create an errorbar plot
+```{r}
+mathbar <- ggplot(sat_df, aes(Sex_factor, MATH))
+mathbar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + 
+  labs(x = "Gender", y = "SAT Math Score") +
+  scale_y_continuous(limits = c(0, 70), breaks = seq(from = 0, to = 70, by = 10))
+      
+
+
+spiderbar <- ggplot(spiderlong, aes(Group, Anxiety))
+spiderbar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") +
+  stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + 
+  labs(x = "Type of Stimulus", y = "Anxiety") +
+  scale_y_continuous(limits = c(0, 70), breaks = seq(from = 0, to = 70, by = 10))
+      
+```
+
+
+
+
+
+Independent t-test for SpiderLong
+```{r}
+ind.t.test <- t.test(Anxiety ~ Group, data = spiderlong)
+ind.t.test
+```
+Effect sizes
+```{r}
+t<-ind.t.test$statistic[[1]]
+df<-ind.t.test$parameter[[1]]
+r <- sqrt(t^2/(t^2+df))
+round(r, 3)
+```
+
+normality of differences
+```{r}
+spiderwide$diff <- spiderwide$real-spiderwide$picture
+stat.desc(spiderwide$diff, basic = FALSE, desc = FALSE, norm = TRUE)
+```
+The output shows that the distribution of differences is not significantly different from normal, W = 0.956, p > .05. As such, it looks as though we can assume that our differences are normal and that, therefore, the sampling distribution of these differences is normal too.
+
+
+
+
+
+***
+## Part 5
+There is no relationship between the sex of the test-taker and whether the test-taker completed the essay component. 
+
+Method:  Pearson's Chi-Squared Test
+
+Run Pearson's Chi-squared Test
+```{r}
+CrossTable(sat_df$Sex, sat_df$Took.Essay., fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
