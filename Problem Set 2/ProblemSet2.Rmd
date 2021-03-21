@@ -2,7 +2,7 @@
 title: "ProblemSet2"
 author: "Amy Richardson"
 date: "2/23/2021"
-output: html_document
+output: word_document
 ---
 
 ```{r setup, include=FALSE}
