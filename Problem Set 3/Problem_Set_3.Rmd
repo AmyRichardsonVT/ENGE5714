@@ -6,7 +6,7 @@ output: word_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 #Initiate packages
@@ -46,7 +46,7 @@ Plot histograms of English Scores among racial/ethnic groups
 sat_df %>%
   ggplot(aes(x = ERW, fill = Race_factor)) +
   geom_histogram () +
-  facet_grid(Race_factor ~.) 
+  facet_grid(Race_factor ~., scales = "free") 
 ```
 
 
@@ -127,13 +127,13 @@ statistically the mean does not vary significantly from 550 however practically 
 Assumptions for t-test
      + Normality - descriptions and plots
      + Independent - assuming that no one took the test twice
-     + continuous - the English scores are continuous
-     + Levene's test
+     + Continuous - the English scores are continuous
+
 
 
 Descriptive statistics
 ```{r}
-round(stat.desc(sat_df$ERW, basic = FALSE, norm = FALSE), digits = 3)
+round(stat.desc(sat_df$ERW, basic = TRUE, norm = FALSE), digits = 3)
 
 ```
 
@@ -153,13 +153,14 @@ qqplot.satENG <- qplot(sample = sat_df$ERW, stat="qq")
 qqplot.satENG + labs(title = "QQPlot for SAT English Scores", x = "Thoeretical", y = "Sample")
 ```
 
+
 ***
 ## Part 3
 The observed distribution of values of the mathematics section is approximately normal.  
 
 Descriptive statistics
 ```{r}
-round(stat.desc(sat_df$MATH, basic = FALSE, norm = FALSE), digits = 3)
+round(stat.desc(sat_df$MATH, basic = TRUE, norm = FALSE), digits = 3)
 
 ```
 
