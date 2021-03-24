@@ -2,7 +2,7 @@
 title: "Problem_Set_3"
 author: "Amy Richardson"
 date: "3/16/2021"
-output: html_document
+output: word_document
 ---
 
 ```{r setup, include=FALSE}
@@ -21,6 +21,7 @@ library(pastecs)
 library(multcomp)
 library(compute.es)
 library(WRS2)
+library(gmodels)
 ```
 
 
@@ -38,52 +39,46 @@ sat_df <- sat_df %>% mutate(MATH = as.numeric(MATH))
 
 ***
 ## Part 1
-There is no difference between scores on the English section of the SAT among racial/ethnic groups. 
+### There is no difference between scores on the English section of the SAT among racial/ethnic groups. 
 
-Plot histograms of English Scores among racial/ethnic groups - NOT DONE
+Plot histograms of English Scores among racial/ethnic groups
 ```{r}
 sat_df %>%
   ggplot(aes(x = ERW, fill = Race_factor)) +
   geom_histogram () +
   facet_grid(Race_factor ~.) 
-  
-
-
-hist_satMath <- ggplot(sat_df, aes (MATH))+ theme(legend.position = "none") +
-  geom_histogram(color = "black", fill = "white", binwidth = 10) +
-  labs(title = "Histogram of SAT Math Scores", x = "Math Scores", y = "Density")
-
-hist_satMath
 ```
 
 
-Method 1: histogram - NOT DONE
+Run descriptive statistics for each group
 ```{r}
-data_gen_df %>% 
-  ggplot(aes(x = study_hrs, fill = discipline)) +
-  geom_histogram() + 
-  facet_grid(discipline ~ .) +
-  labs(title = "Histogram of student average weekly study hours by major",
-       x ="Study hours",
-       y = "Count") +
-  theme(plot.title = element_text(hjust = 0.5))
+by(sat_df$ERW, sat_df$Race_factor, stat.desc)
+
 ```
 
+### The data appears to be normally distributed. The makes sense as the data set is very large and standardized tests such as SAT are designed by normal distribution.
 
-Method 2: boxplots - NOT DONE
+
+Plot boxplots of English Scores among Racial/ethnic groups
 ```{r}
-data_gen_df %>% 
-  ggplot(aes(x = discipline, y = study_hrs)) +
+sat_df %>% 
+  ggplot(aes(x = Race_factor, y = ERW)) +
   geom_boxplot() +
-  labs(title = "Boxplot of student average weekly study hours by major",
-       x ="Major",
-       y = "Average student study hours") +
+  labs(title = "Boxplot of English SAT scores by Race/Ethinicity",
+       x ="Race/Ethnicity",
+       y = "English SAT Scores") +
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
 
+###  There appears to be little variation between groups as the boxes and error bars overlap.
 
+Levene's Test - Assumption of Homogeneity of variance.  
+```{r}
+leveneTest(sat_df$ERW, sat_df$Race_factor, center = median)
+```
 
+###  This output indicates that Levene's test is significant, the variances are different accross groups. However, the sample size is quite large and in large samples even small differences in variances might be deemed significant.  I will contintue with the one-way independent ANOVA test.  
 
 Run ANOVA
 ```{r}
@@ -92,37 +87,19 @@ summary(anova_model)
 
 ```
 
-Levene's Test
+Post-Hoc tests
+Will use Bonferrioni (samples sizes are not equal, going to control for Type I error)
 ```{r}
-leveneTest(sat_df$ERW, sat_df$Race_factor, center = median)
+pairwise.t.test(sat_df$ERW, sat_df$Race_factor, p.adjust.method = "bonferroni")
 ```
 
 
-Welch Test
-```{r}
-oneway.test(ERW ~ Race_factor, data = sat_df)
-```
+Effect Size
+using values from ANOVA results
+omega^2 = (SSM - df * MSR) / (SST + MSR)
+omega^2 = (72860267- 5*8444) / (72860267 + 514679583 + 8444)
+omega = 0.35
 
-Effect Sizes - NOT DONE copied from Week 9 Practice
-```{r}
-summary.lm(anova_model)
-
-```
-
-
-
-
-Make a new data frame with just columns and widen with Race - NOT DONE
-```{r}
-sat_race_df <- select(sat_df, "Race_factor", "ERW")
-```
-
-Convert to wide
-```{r}
-sat_race_wide <- unstack(sat_race_df, ERW ~ Race_factor)
-
-
-```
 
 
 
@@ -215,15 +192,23 @@ There is no difference between male and female scores on the mathematics section
 
 Create an errorbar plot
 ```{r}
-mathbar <- ggplot(sat_df, aes(Sex_factor, MATH))
-mathbar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") +
-  stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + 
-  labs(x = "Gender", y = "SAT Math Score") +
-    scale_y_continuous(limits = c(0, 900), breaks = seq(from = 0, to = 700, by = 100))
-
-
+sat_df %>% 
+  ggplot(aes(x = Sex_factor, y = MATH)) + 
+  geom_boxplot() +
+  labs(title = "Boxplot of Math SAT scores by Gender",
+       x ="Gender",
+       y = "Math SAT Scores") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 ```
+###  There appears to be little variation between groups as the boxes and error bars overlap.
+
+General Statistics
+```{r}
+by(sat_df$MATH, sat_df$Sex_factor, stat.desc, )
+```
+
+
 
 Independent t-test for Math Scores comparing Genders
 ```{r}
@@ -248,25 +233,6 @@ Method:  Pearson's Chi-Squared Test
 
 Run Pearson's Chi-squared Test
 ```{r}
-CrossTable(sat_df$Sex, sat_df$Took.Essay., fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
+CrossTable(sat_df$Sex_factor, sat_df$Took.Essay., fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
