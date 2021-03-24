@@ -9,6 +9,21 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#Initiate packages
+```{r}
+library(ggplot2)
+library(tidyr)
+library (dplyr)
+library(granova)
+library(car)
+library(Rcmdr)
+library(pastecs)
+library(multcomp)
+library(compute.es)
+library(WRS2)
+```
+
+
 Read in Data
 ```{r}
 sat_df <- read.csv("SAT.csv", header = TRUE)
@@ -25,6 +40,89 @@ sat_df <- sat_df %>% mutate(MATH = as.numeric(MATH))
 ## Part 1
 There is no difference between scores on the English section of the SAT among racial/ethnic groups. 
 
+Plot histograms of English Scores among racial/ethnic groups - NOT DONE
+```{r}
+sat_df %>%
+  ggplot(aes(x = ERW, fill = Race_factor)) +
+  geom_histogram () +
+  facet_grid(Race_factor ~.) 
+  
+
+
+hist_satMath <- ggplot(sat_df, aes (MATH))+ theme(legend.position = "none") +
+  geom_histogram(color = "black", fill = "white", binwidth = 10) +
+  labs(title = "Histogram of SAT Math Scores", x = "Math Scores", y = "Density")
+
+hist_satMath
+```
+
+
+Method 1: histogram - NOT DONE
+```{r}
+data_gen_df %>% 
+  ggplot(aes(x = study_hrs, fill = discipline)) +
+  geom_histogram() + 
+  facet_grid(discipline ~ .) +
+  labs(title = "Histogram of student average weekly study hours by major",
+       x ="Study hours",
+       y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+Method 2: boxplots - NOT DONE
+```{r}
+data_gen_df %>% 
+  ggplot(aes(x = discipline, y = study_hrs)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of student average weekly study hours by major",
+       x ="Major",
+       y = "Average student study hours") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+
+
+Run ANOVA
+```{r}
+anova_model <- aov(ERW ~ Race_factor, data = sat_df)
+summary(anova_model)
+
+```
+
+Levene's Test
+```{r}
+leveneTest(sat_df$ERW, sat_df$Race_factor, center = median)
+```
+
+
+Welch Test
+```{r}
+oneway.test(ERW ~ Race_factor, data = sat_df)
+```
+
+Effect Sizes - NOT DONE copied from Week 9 Practice
+```{r}
+summary.lm(anova_model)
+
+```
+
+
+
+
+Make a new data frame with just columns and widen with Race - NOT DONE
+```{r}
+sat_race_df <- select(sat_df, "Race_factor", "ERW")
+```
+
+Convert to wide
+```{r}
+sat_race_wide <- unstack(sat_race_df, ERW ~ Race_factor)
+
+
+```
 
 
 
@@ -39,14 +137,44 @@ num_3_ttest <- t.test(sat_df$ERW, mu = 550)
 num_3_ttest
 ```
 
-effect size
+effect size 
 ```{r}
 t<-num_3_ttest$statistic[[1]]
 df<-num_3_ttest$parameter[[1]]
 r <- sqrt(t^2/(t^2+df))
 round(r, 3)
 ```
+statistically the mean does not vary significantly from 550 however practically there is a small effect size (between 0.1 < r < 0.3)
 
+
+Assumptions for t-test
+     + Normality - descriptions and plots
+     + Independent - assuming that no one took the test twice
+     + continuous - the English scores are continuous
+     + Levene's test
+
+
+Descriptive statistics
+```{r}
+round(stat.desc(sat_df$ERW, basic = FALSE, norm = FALSE), digits = 3)
+
+```
+
+Histogram of English scores
+```{r}
+hist_ENG_all <- ggplot(sat_df, aes (ERW))+ theme(legend.position = "none") +
+  geom_histogram(color = "black", fill = "white", binwidth = 10) +
+  labs(title = "Histogram of SAT English Scores", x = "English Scores", y = "Density")
+
+hist_ENG_all
+
+```
+
+Q-Q Plot of Math scores
+```{r}
+qqplot.satENG <- qplot(sample = sat_df$ERW, stat="qq")
+qqplot.satENG + labs(title = "QQPlot for SAT English Scores", x = "Thoeretical", y = "Sample")
+```
 
 ***
 ## Part 3
@@ -87,25 +215,22 @@ There is no difference between male and female scores on the mathematics section
 
 Create an errorbar plot
 ```{r}
-mathbar <- ggplot(sat_df, aes(Sex, MATH))
+mathbar <- ggplot(sat_df, aes(Sex_factor, MATH))
 mathbar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") +
   stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + 
   labs(x = "Gender", y = "SAT Math Score") +
-    scale_y_continuous(limits = c(0, 900), breaks = seq(from = 0, to = 900, by = 100))
+    scale_y_continuous(limits = c(0, 900), breaks = seq(from = 0, to = 700, by = 100))
 
 
 
 ```
 
-
-
-
-
-Independent t-test for SpiderLong
+Independent t-test for Math Scores comparing Genders
 ```{r}
-ind.t.test <- t.test(Anxiety ~ Group, data = spiderlong)
+ind.t.test <- t.test(MATH ~ Sex_factor, data = sat_df)
 ind.t.test
 ```
+
 Effect sizes
 ```{r}
 t<-ind.t.test$statistic[[1]]
@@ -113,16 +238,6 @@ df<-ind.t.test$parameter[[1]]
 r <- sqrt(t^2/(t^2+df))
 round(r, 3)
 ```
-
-normality of differences
-```{r}
-spiderwide$diff <- spiderwide$real-spiderwide$picture
-stat.desc(spiderwide$diff, basic = FALSE, desc = FALSE, norm = TRUE)
-```
-The output shows that the distribution of differences is not significantly different from normal, W = 0.956, p > .05. As such, it looks as though we can assume that our differences are normal and that, therefore, the sampling distribution of these differences is normal too.
-
-
-
 
 
 ***
