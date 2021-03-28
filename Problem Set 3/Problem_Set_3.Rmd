@@ -22,6 +22,7 @@ library(multcomp)
 library(compute.es)
 library(WRS2)
 library(gmodels)
+library(psych)
 ```
 
 
@@ -98,7 +99,7 @@ Effect Size
 using values from ANOVA results
 omega^2 = (SSM - df * MSR) / (SST + MSR)
 omega^2 = (72860267- 5*8444) / (72860267 + 514679583 + 8444)
-omega = 0.35
+omega = 0.12
 
 
 
@@ -134,6 +135,7 @@ Assumptions for t-test
 Descriptive statistics
 ```{r}
 round(stat.desc(sat_df$ERW, basic = TRUE, norm = FALSE), digits = 3)
+desc(sat_df$ERW)
 
 ```
 
@@ -161,7 +163,7 @@ The observed distribution of values of the mathematics section is approximately 
 Descriptive statistics
 ```{r}
 round(stat.desc(sat_df$MATH, basic = TRUE, norm = FALSE), digits = 3)
-
+describe(sat_df$MATH)
 ```
 
 

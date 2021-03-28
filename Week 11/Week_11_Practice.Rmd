@@ -17,6 +17,7 @@ library(tidyverse)
 library(ggplot2)
 library(cluster)
 library(factoextra)
+library(dendextend)
 ```
 Create Dataframe and clean it up
 ```{r}
@@ -28,4 +29,296 @@ Need to scale data so we do not depend on an arbitrary varible
 ```{r}
 df <- scale(df)
 ```
+
+Measuring Distance
+visualzing a distance matrix
+```{r}
+distance <- get_dist(df)
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+```
+Illustrates which states have large dissimilarities (red) versus those that appear to be fairly similar (teal).
+
+
+K-Means Clustering
+```{r}
+k2 <- kmeans(df, center = 2, nstart = 25)
+k2
+
+```
+
+Visualize Results
+```{r}
+fviz_cluster(k2, data = df)
+```
+
+or Visualize using scatter plot
+```{r}
+df %>%
+  as_tibble() %>%
+  mutate(cluster = k2$cluster,
+         state = row.names(USArrests)) %>%
+  ggplot(aes(UrbanPop, Murder, color = factor(cluster), label = state)) +
+  geom_text()
+```
+
+Can examine different number of groups
+```{r}
+k3 <- kmeans(df, centers = 3, nstart = 25)
+k4 <- kmeans(df, centers = 4, nstart = 25)
+k5 <- kmeans(df, centers = 5, nstart = 25)
+
+# plots to compare
+p1 <- fviz_cluster(k2, geom = "point", data = df) + ggtitle("k = 2")
+p2 <- fviz_cluster(k3, geom = "point",  data = df) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point",  data = df) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point",  data = df) + ggtitle("k = 5")
+
+library(gridExtra)
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+Using Elbow Method to choose the optimum number of clusters [k]
+```{r}
+set.seed(123)
+
+fviz_nbclust(df, kmeans, method = "wss")
+
+```
+```{r}
+set.seed(123)
+
+# function to compute total within-cluster sum of square 
+wss <- function(k) {
+  kmeans(df, k, nstart = 10 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+```
+
+The results suggest that 4 is the optimal number of clusters as it appears to be the bend in the knee (or elbow).
+
+
+Use Average Silhouette Method 
+```{r}
+fviz_nbclust(df, kmeans, method = "silhouette")
+```
+
+
+
+```{r}
+# function to compute average silhouette for k clusters
+avg_sil <- function(k) {
+  km.res <- kmeans(df, centers = k, nstart = 25)
+  ss <- silhouette(km.res$cluster, dist(df))
+  mean(ss[, 3])
+}
+
+# Compute and plot wss for k = 2 to k = 15
+k.values <- 2:15
+
+# extract avg silhouette for 2-15 clusters
+avg_sil_values <- map_dbl(k.values, avg_sil)
+
+plot(k.values, avg_sil_values,
+       type = "b", pch = 19, frame = FALSE, 
+       xlab = "Number of clusters K",
+       ylab = "Average Silhouettes")
+```
+
+Gap Statistic Method
+```{r}
+set.seed(123)
+gap_stat <- clusGap(df, FUN = kmeans, nstart = 25,
+                    K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+```
+
+Suggests four clusters as the optimal number of clusters.
+
+Extract Results
+```{r}
+set.seed(123)
+final <- kmeans(df, 4, nstart = 25)
+print(final)
+
+```
+
+```{r}
+fviz_cluster(final, data = df)
+```
+
+Find descriptive statistics for the 4 clusters
+```{r}
+USArrests %>%
+  mutate(Cluster = final$cluster) %>%
+  group_by(Cluster) %>%
+  summarise_all("mean")
+```
+
+Hierarchical Clustering Algorithms
+(use same data prep techniques as above for K-means)
+
+Perform Agglomerative Hierarchical Clustering - Complete 
+```{r}
+# Dissimilarity matrix
+d <- dist(df, method = "euclidean")
+
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "complete" )
+
+# Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1)
+
+```
+
+Or can do:
+```{r}
+# Compute with agnes
+hc2 <- agnes(df, method = "complete")
+
+# Agglomerative coefficient
+hc2$ac
+
+```
+
+Ward's method
+```{r}
+# methods to assess
+m <- c( "average", "single", "complete", "ward")
+names(m) <- c( "average", "single", "complete", "ward")
+
+# function to compute coefficient
+ac <- function(x) {
+  agnes(df, method = x)$ac
+}
+
+map_dbl(m, ac)
+
+```
+
+Create Dendrogram of Ward's 
+```{r}
+hc3 <- agnes(df, method = "ward")
+pltree(hc3, cex = 0.6, hang = -1, main = "Dendrogram of agnes") 
+```
+
+Identify Sub-groups - cut the dendrogram
+```{r}
+# Ward's method
+hc5 <- hclust(d, method = "ward.D2" )
+
+# Cut tree into 4 groups
+sub_grp <- cutree(hc5, k = 4)
+
+# Number of members in each cluster
+table(sub_grp)
+```
+
+OR
+```{r}
+USArrests %>%
+  mutate(cluster = sub_grp) %>%
+  head
+```
+
+Redraw Dendrogram with a border round hte 4 clusters
+```{r}
+plot(hc5, cex = 0.6)
+rect.hclust(hc5, k = 4, border = 2:5)
+```
+Same as K-means can plot resulting groups
+```{r}
+fviz_cluster(list(data = df, cluster = sub_grp))
+```
+
+Compare two dendrograms
+```{r}
+# Compute distance matrix
+res.dist <- dist(df, method = "euclidean")
+
+# Compute 2 hierarchical clusterings
+hc1 <- hclust(res.dist, method = "complete")
+hc2 <- hclust(res.dist, method = "ward.D2")
+
+# Create two dendrograms
+dend1 <- as.dendrogram (hc1)
+dend2 <- as.dendrogram (hc2)
+
+tanglegram(dend1, dend2)
+```
+
+```{r}
+dend_list <- dendlist(dend1, dend2)
+
+tanglegram(dend1, dend2,
+  highlight_distinct_edges = FALSE, # Turn-off dashed lines
+  common_subtrees_color_lines = FALSE, # Turn-off line colors
+  common_subtrees_color_branches = TRUE, # Color common branches 
+  main = paste("entanglement =", round(entanglement(dend_list), 2))
+  )
+```
+Entanglement is a measure between 1 (full entanglement) and 0 (no entanglement). A lower entanglement coefficient corresponds to a good alignment.
+
+Elbow Method
+```{r}
+fviz_nbclust(df, FUN = hcut, method = "wss")
+
+```
+
+Silhouette Method
+```{r}
+fviz_nbclust(df, FUN = hcut, method = "silhouette")
+```
+
+Gap Statistic Method
+```{r}
+gap_stat <- clusGap(df, FUN = hcut, nstart = 25, K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
