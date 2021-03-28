@@ -1,0 +1,31 @@
+---
+title: "Week_11_Practice"
+author: "Amy Richardson"
+date: "3/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install Packages & Libraries
+```{r}
+#install.packages("factoextra")
+
+library(tidyverse)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+```
+Create Dataframe and clean it up
+```{r}
+df <- USArrests
+df <- na.omit(df)
+```
+
+Need to scale data so we do not depend on an arbitrary varible
+```{r}
+df <- scale(df)
+```
+
