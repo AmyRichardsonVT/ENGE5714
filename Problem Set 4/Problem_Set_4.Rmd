@@ -21,6 +21,7 @@ library(tidyr)
 library(psych)
 library(pastecs)
 library(car)
+library(pgirmess)
 ```
 
 Read in Data
@@ -157,19 +158,19 @@ tsData_sub %>%
 ```
 ##Kruskal=Wallis Test
 ```{r}
-kruskal.test(Sperm ~ Soya, data = soyaData)
-soyaData$Ranks<-rank(soyaData$Sperm)
-by(soyaData$Ranks, soyaData$Soya, mean)
+kruskal.test(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub)
+tsData_sub$Ranks<-rank(tsData_sub$TotalSemesterTimetoDegree)
+by(tsData_sub$Ranks, tsData_sub$Eng.Major, mean)
 ```
 
 Plot data
 ```{r}
-ggplot(soyaData, aes(Soya, Sperm)) + geom_boxplot() +
-  labs(y = "Sperm Count", x = "Number of Soya Meals Per Week")
+ggplot(tsData_sub, aes(Eng.Major, TotalSemesterTimetoDegree)) + geom_boxplot() +
+  labs(y = "Total Number of Semstesters after Transfer to Earn Degree", x = "Engineering Discipline")
 ```
 Post Hoc tests
 ```{r}
-kruskalmc(Sperm ~ Soya, data = soyaData)
+kruskalmc(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub)
 ```
 
 since none of the observations are greater than the critical difference
