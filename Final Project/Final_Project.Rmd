@@ -1,0 +1,46 @@
+---
+title: "Final_ Project"
+author: "Amy Richardson"
+date: "4/6/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Initiate packages
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+library(dendextend)
+library(dplyr)
+library(tidyr)
+library(psych)
+library(pastecs)
+library(car)
+library(pgirmess)
+```
+
+
+##Looka at larger data set for VT students
+
+Read in Data
+```{r}
+degree_all <- read.csv("VTNETSFinal.csv", header = TRUE)
+```
+
+Remove rows with NA For Transfer Institution
+```{r}
+degree_all<- filter(degree_all, TransInst.Name != "NA")
+degree_all <- filter(degree_all, Eng.Bach.Flag == 1)
+```
+
+Create a datafrom with only VCCS transfers
+```{r}
+vccs_df <- filter(degree_all, TransInst.Name == "New River Community College" | TransInst.Name == "Northern Va Cmty Coll-Annandal" | TransInst.Name == "Eastern Shore Community Coll"| TransInst.Name == "Virginia Western Cmty Coll" | TransInst.Name == "Tidewater Cmty Coll Nrflk-Main" | TransInst.Name == "Southwest Virginia Cmty Coll" | TransInst.Name ==  "J Sargeant Reynolds Cmty Coll" | TransInst.Name ==  "Piedmont Virginia Cmty College" | TransInst.Name ==  "Central Virginia Community Col" | TransInst.Name ==  "Thomas Nelson Community Coll" | TransInst.Name ==  "Germanna Community College" | TransInst.Name ==  "Danville Community College" | TransInst.Name ==  "Blue Ridge Cmty College VA" | TransInst.Name == "Patrick Henry Community Coll" | TransInst.Name =="Dabney Lancaster Cmty College" | TransInst.Name =="John Tyler Community College" | TransInst.Name == "Lord Fairfax Community Coll"  | TransInst.Name == "Mountain Empire Cmty College" | TransInst.Name == "Rappahannock Community College" | TransInst.Name == "Southside VA Cmty Coll Alberta" | TransInst.Name == "Virginia Highlands Cmty Coll" | TransInst.Name =="Wytheville Community College")
+
+```
+

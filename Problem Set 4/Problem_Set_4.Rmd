@@ -162,6 +162,8 @@ kruskal.test(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub)
 tsData_sub$Ranks<-rank(tsData_sub$TotalSemesterTimetoDegree)
 by(tsData_sub$Ranks, tsData_sub$Eng.Major, mean)
 ```
+Because p < 0.05 we can conclude that Engineering Major does significantly impact the number of semesters to degree.
+
 
 Plot data
 ```{r}
@@ -177,16 +179,18 @@ since none of the observations are greater than the critical difference
 
 Could do more focused comparisons
 ```{r}
-kruskalmc(Sperm ~ Soya, data = soyaData, cont = 'two-tailed')
+kruskalmc(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub, cont = 'two-tailed')
 ```
 
 
-Testing for trends:
+##Correlation Analaysis between Transfer Credits and Number of semesters to degree
 ```{r}
-jonckheere.test(soyaData$Sperm, as.numeric(soyaData$Soya))
+cor.test(tsData_sub$NumberofCredits, tsData_sub$TotalSemesterTimetoDegree, alternative = "less",  method="kendall")
 ```
 
-
+Seaman's Correlation
+```{r}
+cor.test(tsData_sub$NumberofCredits, tsData_sub$TotalSemesterTimetoDegree, alternative = "less",  method="spearman")
 ```
 
 
