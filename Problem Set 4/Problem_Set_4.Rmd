@@ -155,6 +155,38 @@ tsData_sub %>%
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
+##Kruskal=Wallis Test
+```{r}
+kruskal.test(Sperm ~ Soya, data = soyaData)
+soyaData$Ranks<-rank(soyaData$Sperm)
+by(soyaData$Ranks, soyaData$Soya, mean)
+```
+
+Plot data
+```{r}
+ggplot(soyaData, aes(Soya, Sperm)) + geom_boxplot() +
+  labs(y = "Sperm Count", x = "Number of Soya Meals Per Week")
+```
+Post Hoc tests
+```{r}
+kruskalmc(Sperm ~ Soya, data = soyaData)
+```
+
+since none of the observations are greater than the critical difference
+
+Could do more focused comparisons
+```{r}
+kruskalmc(Sperm ~ Soya, data = soyaData, cont = 'two-tailed')
+```
+
+
+Testing for trends:
+```{r}
+jonckheere.test(soyaData$Sperm, as.numeric(soyaData$Soya))
+```
+
+
+```
 
 
 
