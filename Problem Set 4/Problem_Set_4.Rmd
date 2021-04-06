@@ -20,11 +20,11 @@ library(dplyr)
 library(tidyr)
 library(psych)
 library(pastecs)
+library(car)
 ```
 
 Read in Data
 ```{r}
-cc_df <- read.csv("2019 Compliled Data.csv", header = TRUE)
 ts_df <- read.csv("VTNETSFinalv2.csv", header = TRUE)
 ```
 
@@ -45,17 +45,20 @@ ts_df <- filter(ts_df, Eng.Major != "MSE")
 ts_df <- filter(ts_df, Eng.Major != "CHE")
 ts_df <- filter(ts_df, Eng.Major != "ISE")
 ts_df <- filter(ts_df, Eng.Major != "ESM")
-```
 
-
-
-```{r}
 tsData_sub <- ts_df %>%
   select(Gender, NumberofCredits, Eng.Major, GPA, TotalSemesterTimetoDegree, FullTimeSemstoDegree) 
 ```
 
-
+## Checking Data normality
 Histograms 
+```{r}
+tsData_sub %>%
+  ggplot(aes(x = NumberofCredits)) +
+  geom_histogram () 
+```
+
+Histograms by Engineering Discipline
 ```{r}
 tsData_sub %>%
   ggplot(aes(x = NumberofCredits, fill = Eng.Major)) +
@@ -63,8 +66,7 @@ tsData_sub %>%
   facet_grid(Eng.Major ~., scales = "free") 
 ```
 
-
-By Gender
+Transfer Credit By Gender
 ```{r}
 tsData_sub %>%
   ggplot(aes(x = NumberofCredits, fill = Gender)) +
@@ -72,6 +74,7 @@ tsData_sub %>%
   facet_grid(Eng.Major ~., scales = "free") 
 ```
 
+Descriptive Statistics
 ```{r}
 describe(ts_df$NumberofCredits)
 by(ts_df$NumberofCredits, ts_df$Eng.Major, stat.desc)
@@ -83,12 +86,21 @@ qqplot.tsCredit <- qplot(sample = tsData_sub$NumberofCredits, stat="qq")
 qqplot.tsCredit + stat_qq_line()+
   labs(title = "QQPlot for Transfer Credit", x = "Thoeretical", y = "Sample")
 ```
+Q-Q plots by Major
+```{r}
+tsData_sub%>% 
+  ggplot(aes(sample=NumberofCredits)) +
+  stat_qq() +
+  stat_qq_line() +
+  facet_wrap(Eng.Major ~ ., scales = "free")
+
+```
 
 Shappiro-Wilks Test
 ```{r}
 shapiro.test(tsData_sub$NumberofCredits)
 ```
-
+Since p < 0.05 the distribution of number of transfer credits is not normal
 
 Plot boxplots of transfer credits by engineering discipline
 ```{r}
@@ -112,9 +124,47 @@ tsData_sub %>%
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+## Checking Number of Semesters normality
+```{r}
+tsData_sub %>%
+  ggplot(aes(x = TotalSemesterTimetoDegree)) +
+  geom_histogram () 
+```
+
+Shappiro-Wilks Test
+```{r}
+shapiro.test(tsData_sub$TotalSemesterTimetoDegree)
+```
+
+Histogram by Engineering Discipline
+```{r}
+tsData_sub %>%
+  ggplot(aes(x = NumberofCredits, fill = TotalSemesterTimetoDegree)) +
+  geom_histogram () +
+  facet_grid(Eng.Major ~., scales = "free") 
+```
+
+Plot boxplots of Total Semester to Degree by engineering discipline
+```{r}
+tsData_sub %>% 
+  ggplot(aes(x = Eng.Major, y = TotalSemesterTimetoDegree)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Number of Semesters to Degree by Engineering Discipline",
+       x ="Engineering Discipline",
+       y = "Number of Semesters to Degree") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
 
 
 
+
+##Cluster and Cinderella's Closet
+
+
+Read in Data
+```{r}
+cc_df <- read.csv("2019 Compliled Data.csv", header = TRUE)
 
 KMeans - DOES NOT WORK
 ```{r}
