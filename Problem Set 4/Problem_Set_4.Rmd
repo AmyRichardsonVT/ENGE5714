@@ -283,6 +283,12 @@ mean_df2 %>%
   summarise_all("mean")
 ```
 
+Initial visulization
+```{r}
+distance <- get_dist(mean_df2)
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+```
+
 
 
 
