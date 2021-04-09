@@ -111,8 +111,6 @@ Extract Results
 ```{r}
 set.seed(123)
 final <- kmeans(mean_df[,3:4], 4, nstart = 25)
-print(final)
-
 ```
 
 
@@ -133,7 +131,7 @@ mean_df %>%
 Add Cluster numbers in new Dataframe
 ```{r}
 # Cluster Analysis - kmeans
-k4_2 <- kmeans(mean_df[,3:4], centers = 4)
+k4_2 <- kmeans(mean_df[,3:4], 4)
 kmeans_basic_table <- data.frame(k4_2$size, k4_2$centers)
 kmeans_basic_df <- data.frame(Cluster = k4_2$cluster, mean_df)
 # head of df
