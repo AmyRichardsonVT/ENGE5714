@@ -37,11 +37,13 @@ Remove rows with NA For Transfer Institution
 degree_all<- filter(degree_all, TransInst.Name != "NA")
 degree_all <- filter(degree_all, Eng.Bach.Flag == 1)
 degree_all <- filter(degree_all, NumberofCredits > 0)
+degree_all <- select(degree_all, TransInst.Name, NumberofCredits, Eng.Major, GPA, TotalSemesterTimetoDegree)
 ```
 
 Create dataframe for Transient transfer students < 12 transfer credits
 ```{r}
 transient_df <- filter(degree_all, NumberofCredits < 12)
+transient_df <- mutate(transient_df, Xfer.Type = "Transient")
 ```
 
 
@@ -50,6 +52,7 @@ Create a dataframe with only VCCS transfers
 vccs_df <- filter(degree_all, TransInst.Name == "New River Community College" | TransInst.Name == "Northern Va Cmty Coll-Annandal" | TransInst.Name == "Eastern Shore Community Coll"| TransInst.Name == "Virginia Western Cmty Coll" | TransInst.Name == "Tidewater Cmty Coll Nrflk-Main" | TransInst.Name == "Southwest Virginia Cmty Coll" | TransInst.Name ==  "J Sargeant Reynolds Cmty Coll" | TransInst.Name ==  "Piedmont Virginia Cmty College" | TransInst.Name ==  "Central Virginia Community Col" | TransInst.Name ==  "Thomas Nelson Community Coll" | TransInst.Name ==  "Germanna Community College" | TransInst.Name ==  "Danville Community College" | TransInst.Name ==  "Blue Ridge Cmty College VA" | TransInst.Name == "Patrick Henry Community Coll" | TransInst.Name =="Dabney Lancaster Cmty College" | TransInst.Name =="John Tyler Community College" | TransInst.Name == "Lord Fairfax Community Coll"  | TransInst.Name == "Mountain Empire Cmty College" | TransInst.Name == "Rappahannock Community College" | TransInst.Name == "Southside VA Cmty Coll Alberta" | TransInst.Name == "Virginia Highlands Cmty Coll" | TransInst.Name =="Wytheville Community College"  | TransInst.Name == "Northern Virginia Comm Coll")
 
 vccs_df <- filter(vccs_df, NumberofCredits > 12 )
+vccs_df <- mutate(vccs_df, Xfer.Type = "Vert.VCCS")
 
 ```
 
@@ -62,52 +65,108 @@ no_vccs_dfa <- filter(no_vccs_dfa, TransInst.Name != "Credit by Exam")
 no_vccs_df <- filter(no_vccs_dfa, TransInst.Name == "Anne Arundel Community College"| TransInst.Name == "Austin Community Coll - TX"| TransInst.Name == "Barbados Comm Coll"| TransInst.Name == "Bergen Community College"| TransInst.Name == "Berkeley City College"| TransInst.Name == "Broward Cmty Coll Central"| TransInst.Name == "Carroll Cmty College"| TransInst.Name == "Chattanooga State Tech Cmty Cl"| TransInst.Name == "Clackamas Community College"| TransInst.Name == "Collin County Comm Coll" | TransInst.Name == "Colorado Northwestern Cmty Col"| TransInst.Name == "County College of Morris"| TransInst.Name == "Delaware County Community Coll" | TransInst.Name == "Delaware Tech CC Dover Terry C"| TransInst.Name == "Edmonds Community College"|TransInst.Name == "Everett Community College"| TransInst.Name == "Fiorello Laguardia Cmty Coll"| TransInst.Name == "Frederick Community College"| TransInst.Name == "Gateway Cmty College"| TransInst.Name == "Gateway Cmty Technical Coll"| TransInst.Name == "Green River Community College"| TransInst.Name == "Howard Community College"| TransInst.Name == "Hudson Valley Comm unity Coll"| TransInst.Name == "Mercer County Comm Coll" | TransInst.Name == "Miami-Dade Cmty Coll South"| TransInst.Name == "Miami-Dade College"| TransInst.Name == "Monroe Community College"| TransInst.Name == "Montgomery College" | TransInst.Name == "Montgomery College of Takoma" | TransInst.Name == "Montgomery College Rockville" | TransInst.Name == "Northampton Co Area Cmty Coll" | TransInst.Name == "Northampton Community College" | TransInst.Name == "Oakland Cmty Col Bloomfld" | TransInst.Name ==  "Onondaga Community College" | TransInst.Name == "Orange County Community Coll" | TransInst.Name == "Pasadena City College" | TransInst.Name == "Prince Georges Cmty College" | TransInst.Name == "Queensborough Community Coll" | TransInst.Name == "Raritan Valley Cmty Coll" | TransInst.Name == "Red Rocks Community College" | TransInst.Name == "Richard Bland College" | TransInst.Name == "Santa Fe Community College FL" | TransInst.Name == "Santa Fe College" | TransInst.Name == "San Diego City College" | TransInst.Name == "Seattle Central Community Coll" | TransInst.Name == "Spokane Falls Cmty College" | TransInst.Name == "Trident Tech College North" | TransInst.Name =="Westchester Community College")
 
 no_vccs_df <- filter(no_vccs_df, NumberofCredits > 12 )
+no_vccs_df <- mutate(no_vccs_df, Xfer.Type = "Vert")
 ```
 
 Create a dataframe with Horizontal transfers
 ```{r}
 horz_df <- anti_join(no_vccs_dfa, no_vccs_df)
-
 horz_df <- filter(horz_df, NumberofCredits > 12 )
+horz_df <- mutate(horz_df, Xfer.Type = "Horz")
+
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Old Code from Parametric Test on Just NOVA data
-#Initiate packages
+Join all back to one dataframe
 ```{r}
-library(tidyverse)
-library(ggplot2)
-library(cluster)
-library(factoextra)
-library(dendextend)
-library(dplyr)
-library(tidyr)
-library(psych)
-library(pastecs)
-library(car)
-library(ggpubr)
-library(pgirmess)
+eng_trans <- full_join(transient_df, vccs_df)
+eng_trans <- full_join(eng_trans, no_vccs_df)
+eng_trans <- full_join(eng_trans, horz_df)
 ```
+
+##Explore Number of Credits
+```{r}
+eng_trans %>%
+  ggplot(aes(x = NumberofCredits)) +
+  geom_histogram () 
+```
+
+Q-Q Plot of Transfer Credit
+```{r}
+qqplot.tsCredit <- qplot(sample = eng_trans$NumberofCredits, stat="qq")
+qqplot.tsCredit + stat_qq_line()+
+  labs(title = "QQPlot for Transfer Credit", x = "Thoeretical", y = "Sample")
+```
+
+Shappiro-Wilks Test
+```{r}
+shapiro.test(eng_trans$NumberofCredits)
+```
+Since p < 0.05 the distribution of number of transfer credits is not normal
+
+
+##Explore by Transfer Type
+Histograms by Engineering Discipline
+```{r}
+eng_trans %>%
+  ggplot(aes(x = NumberofCredits, fill = Xfer.Type)) +
+  geom_histogram () +
+  facet_grid(Xfer.Type ~., scales = "free") 
+```
+Q-Q plots by Transfer Type
+```{r}
+eng_trans %>% 
+  ggplot(aes(sample=NumberofCredits)) +
+  stat_qq() +
+  stat_qq_line() +
+  facet_wrap(Xfer.Type ~ ., scales = "free")
+
+```
+
+
+Shappiro-Wilks Test Per Transfer Type
+```{r}
+shapiro.test(horz_df$NumberofCredits)
+```
+
+```{r}
+shapiro.test(transient_df$NumberofCredits)
+```
+
+```{r}
+shapiro.test(no_vccs_df$NumberofCredits)
+```
+
+```{r}
+shapiro.test(vccs_df$NumberofCredits)
+```
+
+Descriptive Statistics
+```{r}
+describe(eng_trans$NumberofCredits)
+by(eng_trans$NumberofCredits, eng_trans$Xfer.Type, stat.desc)
+``
+```
+
+Plot boxplots of transfer credits by transfer Type
+```{r}
+eng_trans %>% 
+  ggplot(aes(x = Xfer.Type, y = NumberofCredits)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Transfer Credit  by Transfer Type",
+       x ="Transfer Type",
+       y = "Number of Transfer Credits") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+
+
+
+
+
+
+# Old Code from Parametric Test on Just NOVA data
 
 Read in Data
 ```{r}
