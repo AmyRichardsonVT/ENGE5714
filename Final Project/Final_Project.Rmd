@@ -168,15 +168,10 @@ eng_trans %>%
 
 # Old Code from Parametric Test on Just NOVA data
 
-Read in Data
-```{r}
-ts_df <- read.csv("VTNETSFinalv2.csv", header = TRUE)
-```
-
 In Transfer Data Set only keeping transfer from NVCC with a BS degree
 ```{r}
-ts_df <- filter(ts_df, TransInst.Name == "Northern Va Cmty Coll-Annandal")
-ts_df <- filter(ts_df, Eng.Bach.Flag == 1)
+nvcc_df <- filter(degree_all, TransInst.Name == "Northern Va Cmty Coll-Annandal")
+
 ```
 
 Remove Engineering Disciplines with n<20
