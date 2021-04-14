@@ -35,50 +35,73 @@ taxi_sub <- select(taxi_df, PULocationID, trip_distance, total_amount)
 
 Loc_df <- merge(taxi_sub, zonei_df, by.x = "PULocationID", by.y = "LocationID")
 Loc_df <- select(Loc_df, Zone, PULocationID, trip_distance, total_amount)
-Loc_df <- filter(Loc_df, trip_distance > 0)
+Loc_df <- filter(Loc_df, trip_distance > 0.1)
+Loc_df <- filter(Loc_df, trip_distance < 100)
 Loc_df<- filter(Loc_df, total_amount > 0 )
 
 Loc_df <- inner_join(Loc_df,zonei_df)
 Loc_df <- select(Loc_df, Zone, Borough, PULocationID, trip_distance, total_amount)
+Loc_df <- filter(Loc_df, Borough != "EWR")
+Loc_df <- filter(Loc_df, Borough != "Unknown")
+
+Loc_df <- rename(Loc_df,
+    Distance = trip_distance,
+    Total_Cost = total_amount
+    )
 
 ```
 
 Standardize Trip Distance and Total Amount
 ```{r}
+Loc_df$trip_distance <-scale(Loc_df$Distance)
+Loc_df$total_amount <- scale(Loc_df$Total_Cost)
 
 ```
 
-
-Initial Visualization
+Histogram by Borough
 ```{r}
-distance <- get_dist(Loc_df[,4:5])
-fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+Loc_df %>%
+  ggplot(aes(x = Distance, fill = Borough)) +
+  geom_histogram () +
+  facet_grid(Borough~., scales = "free") 
+```
+
+
+Describe by Borough
+```{r}
+describe(Loc_df$trip_distance)
+by(Loc_df$trip_distance, Loc_df$Borough, stat.desc)
+```
+
+Randomly choose 50,000 trips - to reduce running time of cluster
+```{r}
+Loc_scale <- sample_n(Loc_df, 10000)
 ```
 
 
 Can examine different number of groups
 ```{r}
 set.seed(123)
-k2 <- kmeans(mean_df[,3:4], 2, nstart = 25)
-k3 <- kmeans(mean_df[,3:4], 3, nstart = 25)
-k4 <- kmeans(mean_df[,3:4], 4, nstart = 25)
-k5 <- kmeans(mean_df[,3:4], 5, nstart = 25)
-k6 <- kmeans(mean_df[,3:4], 6, nstart = 25)
-k7 <- kmeans(mean_df[,3:4], 7, nstart = 25)
-k8 <- kmeans(mean_df[,3:4], 8, nstart = 25)
-k9 <- kmeans(mean_df[,3:4], 9, nstart = 25)
-k10 <- kmeans(mean_df[,3:4], 10, nstart = 25)
+k2 <- kmeans(Loc_scale [,4:5], 2, nstart = 25)
+k3 <- kmeans(Loc_scale [,4:5], 3, nstart = 25)
+k4 <- kmeans(Loc_scale [,4:5], 4, nstart = 25)
+k5 <- kmeans(Loc_scale [,4:5], 5, nstart = 25)
+k6 <- kmeans(Loc_scale [,4:5], 6, nstart = 25)
+k7 <- kmeans(Loc_scale [,4:5], 7, nstart = 25)
+k8 <- kmeans(Loc_scale [,4:5], 8, nstart = 25)
+k9 <- kmeans(Loc_scale [,4:5], 9, nstart = 25)
+k10 <- kmeans(Loc_scale [,4:5], 10, nstart = 25)
 
 # plots to compare
-p1 <- fviz_cluster(k2, geom = "point", data = mean_df[,3:4]) + ggtitle("k = 2")
-p2 <- fviz_cluster(k3, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 3")
-p3 <- fviz_cluster(k4, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 4")
-p4 <- fviz_cluster(k5, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 5")
-p5 <- fviz_cluster(k6, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 6")
-p6 <- fviz_cluster(k7, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 7")
-p7 <- fviz_cluster(k8, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 8")
-p8 <- fviz_cluster(k9, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 9")
-p9 <- fviz_cluster(k10, geom = "point",  data = mean_df[,3:4]) + ggtitle("k = 10")
+p1 <- fviz_cluster(k2, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 2")
+p2 <- fviz_cluster(k3, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 5")
+p5 <- fviz_cluster(k6, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 6")
+p6 <- fviz_cluster(k7, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 7")
+p7 <- fviz_cluster(k8, geom = "point", Loc_scale [,4:5])+ ggtitle("k = 8")
+p8 <- fviz_cluster(k9, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 9")
+p9 <- fviz_cluster(k10, geom = "point", Loc_scale [,4:5]) + ggtitle("k = 10")
 
 
 grid.arrange(p1, p2, p3, p4, nrow = 2)
@@ -91,53 +114,44 @@ Using Elbow Method to choose the optimum number of clusters [k]
 ```{r}
 set.seed(123)
 
-fviz_nbclust(mean_df[,3:4], kmeans, method = "wss")
+fviz_nbclust(Loc_scale [,4:5], kmeans, method = "wss")
 ```
 
 Use Average Silhouette Method 
 ```{r}
-fviz_nbclust(mean_df[,3:4], kmeans, method = "silhouette")
+fviz_nbclust(Loc_scale [,4:5], kmeans, method = "silhouette")
 ```
-
-
-Gap Statistic Method
-```{r}
-set.seed(123)
-gap_stat <- clusGap(mean_df[,3:4], FUN = kmeans, nstart = 25,
-                    K.max = 10, B = 50)
-fviz_gap_stat(gap_stat)
-```
-
 
 Extract Results
 ```{r}
 set.seed(123)
-final <- kmeans(mean_df[,3:4], 4, nstart = 25)
+final <- kmeans(Loc_scale [,4:5], 4, nstart = 25)
 ```
 
 
 Plot Final Groups
 ```{r}
-fviz_cluster(final, data = mean_df[,3:4])
+fviz_cluster(final, data = Loc_scale [,4:5])
 ```
 
-Find descriptive statistics for the 4 clusters
-```{r}
-mean_df %>%
-  mutate(Cluster = final$cluster) %>%
-  group_by(Cluster) %>%
-  summarise_all("mean")
-```
 
 
 Add Cluster numbers in new Dataframe
 ```{r}
-# Cluster Analysis - kmeans
-k4_2 <- kmeans(mean_df[,3:4], 4)
+
+k4_2 <- kmeans(Loc_scale [,4:5], 4)
 kmeans_basic_table <- data.frame(k4_2$size, k4_2$centers)
-kmeans_basic_df <- data.frame(Cluster = k4_2$cluster, mean_df)
-# head of df
+kmeans_basic_df <- data.frame(Cluster = k4_2$cluster, Loc_scale)
 head(kmeans_basic_df)
+
+```
+
+Find descriptive statistics for the 4 clusters
+```{r}
+Loc_scale %>%
+  mutate(Cluster = final$cluster) %>%
+  group_by(Cluster) %>%
+  summarise_all("mean")
 ```
 
 

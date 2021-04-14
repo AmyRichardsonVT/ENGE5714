@@ -35,7 +35,8 @@ taxi_sub <- select(taxi_df, PULocationID, trip_distance, total_amount)
 
 Loc_df <- merge(taxi_sub, zonei_df, by.x = "PULocationID", by.y = "LocationID")
 Loc_df <- select(Loc_df, Zone, PULocationID, trip_distance, total_amount)
-Loc_df <- filter(Loc_df, trip_distance > 0)
+Loc_df <- filter(Loc_df, trip_distance > 0.1)
+Loc_df <- filter(Loc_df, trip_distance < 100)
 Loc_df<- filter(Loc_df, total_amount > 0 )
 
 mean_df <- Loc_df %>% group_by(Zone) %>%
@@ -45,7 +46,25 @@ mean_df <- filter(mean_df, Zone != "NV")
 mean_df <- inner_join(mean_df,zonei_df)
 mean_df <- select(mean_df, Zone, Borough, trip_distance, total_amount, )
 
+mean_df <- rename(mean_df,
+    Distance = trip_distance,
+    Total_Cost = total_amount
+    )
+
 ```
+
+Standardize Trip Distance and Total Amount
+```{r}
+mean_df$trip_distance <-scale(mean_df$Distance)
+mean_df$total_amount <- scale(mean_df$Total_Cost)
+
+mean_df <- select(mean_df, Zone, Borough, trip_distance, total_amount, Distance, Total_Cost)
+
+```
+
+
+
+
 
 Initial visulization
 ```{r}
