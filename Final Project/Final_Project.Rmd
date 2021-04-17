@@ -83,6 +83,14 @@ eng_trans <- full_join(eng_trans, no_vccs_df)
 eng_trans <- full_join(eng_trans, horz_df)
 ```
 
+Combine the VCCS/non-VCCS data set for a Vertical Data Set
+```{r}
+vert_df <- full_join(no_vccs_df, vccs_df)
+```
+
+
+
+
 ##Explore Number of Credits
 ```{r}
 eng_trans %>%
@@ -140,11 +148,41 @@ shapiro.test(no_vccs_df$NumberofCredits)
 shapiro.test(vccs_df$NumberofCredits)
 ```
 
-Descriptive Statistics
+
+## Checking Number of Semesters normality
+```{r}
+eng_trans %>%
+  ggplot(aes(x = TotalSemesterTimetoDegree)) +
+  geom_histogram () 
+```
+
+Shappiro-Wilks Test
+```{r}
+shapiro.test(eng_trans$TotalSemesterTimetoDegree)
+```
+
+# RQ1.How does the number of credits transferred vary across transfer groups?
+
+##Kruskal=Wallis Test
+```{r}
+kruskal.test(NumberofCredits ~ Xfer.Type, data = eng_trans)
+eng_trans$Ranks<-rank(eng_trans$NumberofCredits)
+by(eng_trans$Ranks, eng_trans$Xfer.Type, mean)
+```
+Because p < 0.05 we can conclude that Engineering Major does significantly impact the number of semesters to degree.
+
+
+
+Post Hoc tests
+```{r}
+kruskalmc(NumberofCredits ~ Xfer.Type, data = eng_trans)
+```
+
+##Descriptive Statistics
 ```{r}
 describe(eng_trans$NumberofCredits)
 by(eng_trans$NumberofCredits, eng_trans$Xfer.Type, stat.desc)
-``
+
 ```
 
 Plot boxplots of transfer credits by transfer Type
@@ -158,135 +196,111 @@ eng_trans %>%
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
-
-
-
-
-
-
-
-
-# Old Code from Parametric Test on Just NOVA data
-
-In Transfer Data Set only keeping transfer from NVCC with a BS degree
+## Difference between Vertical VCCS and non-VCCS
 ```{r}
-nvcc_df <- filter(degree_all, TransInst.Name == "Northern Va Cmty Coll-Annandal")
 
 ```
 
-Remove Engineering Disciplines with n<20
+Exploratory analysis
 ```{r}
-ts_df <- filter(ts_df, Eng.Major != "DOE")
-ts_df <- filter(ts_df, Eng.Major != "OE")
-ts_df <- filter(ts_df, Eng.Major != "MINE")
-ts_df <- filter(ts_df, Eng.Major != "DAE")
-ts_df <- filter(ts_df, Eng.Major != "BSE")
-ts_df <- filter(ts_df, Eng.Major != "MSE")
-ts_df <- filter(ts_df, Eng.Major != "CHE")
-ts_df <- filter(ts_df, Eng.Major != "ISE")
-ts_df <- filter(ts_df, Eng.Major != "ESM")
-
-tsData_sub <- ts_df %>%
-  select(Gender, NumberofCredits, Eng.Major, GPA, TotalSemesterTimetoDegree, FullTimeSemstoDegree) 
+by(vert_df$NumberofCredits, vert_df$Xfer.Type, stat.desc, basic=FALSE, norm=TRUE)
+leveneTest(vert_df$NumberofCredits, vert_df$Xfer.Type, center = "mean")
 ```
 
-## Checking Data normality
-Histograms 
-```{r}
-tsData_sub %>%
-  ggplot(aes(x = NumberofCredits)) +
-  geom_histogram () 
-```
+??Since Levene's tests for Sunday and for Wednesday are not significantly different, the homogeneity of variance has been met.
 
-Histograms by Engineering Discipline
+Run Wilcoxon Rank-Sum TEst
 ```{r}
-tsData_sub %>%
-  ggplot(aes(x = NumberofCredits, fill = Eng.Major)) +
-  geom_histogram () +
-  facet_grid(Eng.Major ~., scales = "free") 
-```
-
-Transfer Credit By Gender
-```{r}
-tsData_sub %>%
-  ggplot(aes(x = NumberofCredits, fill = Gender)) +
-  geom_histogram ()
-  facet_grid(Eng.Major ~., scales = "free") 
-```
-
-Descriptive Statistics
-```{r}
-describe(ts_df$NumberofCredits)
-by(ts_df$NumberofCredits, ts_df$Eng.Major, stat.desc)
-```
-
-Q-Q Plot of Transfer Credit
-```{r}
-qqplot.tsCredit <- qplot(sample = tsData_sub$NumberofCredits, stat="qq")
-qqplot.tsCredit + stat_qq_line()+
-  labs(title = "QQPlot for Transfer Credit", x = "Thoeretical", y = "Sample")
-```
-Q-Q plots by Major
-```{r}
-tsData_sub%>% 
-  ggplot(aes(sample=NumberofCredits)) +
-  stat_qq() +
-  stat_qq_line() +
-  facet_wrap(Eng.Major ~ ., scales = "free")
+vertModel<-wilcox.test(NumberofCredits ~ Xfer.Type, data = vert_df, exact = FALSE, correct= FALSE)
+vertModel
 
 ```
 
-Shappiro-Wilks Test
+Effect Size
 ```{r}
-shapiro.test(tsData_sub$NumberofCredits)
-```
-Since p < 0.05 the distribution of number of transfer credits is not normal
+rFromWilcox<-function(wilcoxModel, N){
+	z<- qnorm(wilcoxModel$p.value/2)
+	r<- z/ sqrt(N)
+	cat(wilcoxModel$data.name, "Effect Size, r = ", r)
+}
 
-Plot boxplots of transfer credits by engineering discipline
+rFromWilcox(vertModel, 20)
+
+```
+
+
+
+
+# RQ2. How does the time to degree vary across transfer groups?
+
+##Kruskal=Wallis Test
 ```{r}
-tsData_sub %>% 
-  ggplot(aes(x = Eng.Major, y = NumberofCredits)) +
+kruskal.test(TotalSemesterTimetoDegree ~ Xfer.Type, data = eng_trans)
+eng_trans$Ranks<-rank(eng_trans$TotalSemesterTimetoDegree)
+by(eng_trans$Ranks, eng_trans$Xfer.Type, mean)
+```
+Because p < 0.05 we can conclude that Engineering Major does significantly impact the number of semesters to degree.
+
+
+
+Post Hoc tests
+```{r}
+kruskalmc(TotalSemesterTimetoDegree ~ Xfer.Type, data = eng_trans)
+```
+
+##Descriptive Statistics
+```{r}
+describe(eng_trans$TotalSemesterTimetoDegree)
+by(eng_trans$TotalSemesterTimetoDegree, eng_trans$Xfer.Type, stat.desc)
+
+```
+
+Plot boxplots of transfer credits by transfer Type
+```{r}
+eng_trans %>% 
+  ggplot(aes(x = Xfer.Type, y = TotalSemesterTimetoDegree)) +
   geom_boxplot() +
-  labs(title = "Boxplot of Transfer Credit  by Engineering Discipline",
-       x ="Engineering Discipline",
-       y = "Number of Transfer Credits") +
+  labs(title = "Boxplot of Total Semester Time to Degree  by Transfer Type",
+       x ="Transfer Type",
+       y = "Total Semester Time to Degree") +
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
-Plot boxplots of transfer credits by gender
+
+
+
+# RQ3. How does degree of engineering discipline relate to the number of semesters to degree after transfer for vertical transfer students?
+
+
+Descriptive Statistics by Major for Vertical Transfer Students
 ```{r}
-tsData_sub %>% 
-  ggplot(aes(x = Gender, y = NumberofCredits)) +
-  geom_boxplot() +
-  labs(title = "Boxplot of Transfer Credit  by Gender",
-       x ="Gender",
-       y = "Number of Transfer Credits") +
-  theme(plot.title = element_text(hjust = 0.5))
+describe(vert_df$NumberofCredits)
+by(vert_df$NumberofCredits, vert_df$Eng.Major, stat.desc)
+
 ```
 
-## Checking Number of Semesters normality
+Remove Majors with less than 20 students
 ```{r}
-tsData_sub %>%
-  ggplot(aes(x = TotalSemesterTimetoDegree)) +
-  geom_histogram () 
+vert_df_sub <- filter(vert_df, Eng.Major != "DAE")
+vert_df_sub <- filter(vert_df_sub, Eng.Major != "BSE")
+vert_df_sub<- filter(vert_df_sub, Eng.Major != "DOE")
+vert_df_sub <- filter(vert_df_sub, Eng.Major != "MINE")
+vert_df_sub <- filter(vert_df_sub, Eng.Major != "ESM")
+vert_df_sub<- filter(vert_df_sub, Eng.Major != "OE")
 ```
 
-Shappiro-Wilks Test
-```{r}
-shapiro.test(tsData_sub$TotalSemesterTimetoDegree)
-```
 
 Histogram by Engineering Discipline
 ```{r}
-tsData_sub %>%
-  ggplot(aes(x = NumberofCredits, fill = TotalSemesterTimetoDegree)) +
+vert_df_sub %>%
+  ggplot(aes(x = TotalSemesterTimetoDegree)) +
   geom_histogram () +
   facet_grid(Eng.Major ~., scales = "free") 
 ```
 
 Plot boxplots of Total Semester to Degree by engineering discipline
 ```{r}
-tsData_sub %>% 
+vert_df_sub %>% 
   ggplot(aes(x = Eng.Major, y = TotalSemesterTimetoDegree)) +
   geom_boxplot() +
   labs(title = "Boxplot of Number of Semesters to Degree by Engineering Discipline",
@@ -297,46 +311,73 @@ tsData_sub %>%
 ```
 ##Kruskal=Wallis Test
 ```{r}
-kruskal.test(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub)
-tsData_sub$Ranks<-rank(tsData_sub$TotalSemesterTimetoDegree)
-by(tsData_sub$Ranks, tsData_sub$Eng.Major, mean)
+kruskal.test(TotalSemesterTimetoDegree ~ Eng.Major, data = vert_df_sub)
+vert_df_sub$Ranks<-rank(vert_df_sub$TotalSemesterTimetoDegree)
+by(vert_df_sub$Ranks, vert_df_sub$Eng.Major, mean)
 ```
 Because p < 0.05 we can conclude that Engineering Major does significantly impact the number of semesters to degree.
 
-
-Plot data
-```{r}
-ggplot(tsData_sub, aes(Eng.Major, TotalSemesterTimetoDegree)) + geom_boxplot() +
-  labs(y = "Total Number of Semstesters after Transfer to Earn Degree", x = "Engineering Discipline")
-```
 Post Hoc tests
 ```{r}
-kruskalmc(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub)
+kruskalmc(TotalSemesterTimetoDegree ~ Eng.Major, data = vert_df_sub)
 ```
 
-since none of the observations are greater than the critical difference
 
-Could do more focused comparisons
+# RQ4.  The median semester to degrees 4 for vertical transfer students is  4.
+
+
+
+# RQ5.  ##Correlation Analaysis between Transfer Credits and Number of semesters to degree for each Transfer Type
+
+## Transient
+Kendall's Tau
 ```{r}
-kruskalmc(TotalSemesterTimetoDegree ~ Eng.Major, data = tsData_sub, cont = 'two-tailed')
+cor.test(transient_df$NumberofCredits, transient_df$TotalSemesterTimetoDegree, alternative = "less",  method="kendall")
 ```
 
-
-##Correlation Analaysis between Transfer Credits and Number of semesters to degree
+Spearman's Correlation
 ```{r}
-cor.test(tsData_sub$NumberofCredits, tsData_sub$TotalSemesterTimetoDegree, alternative = "less",  method="kendall")
+cor.test(transient_df$NumberofCredits, transient_df$TotalSemesterTimetoDegree, alternative = "less",  method="spearman")
 ```
 
-Seaman's Correlation
+
+##Horizontal
+Kendall's Tau
 ```{r}
-cor.test(tsData_sub$NumberofCredits, tsData_sub$TotalSemesterTimetoDegree, alternative = "less",  method="spearman")
+cor.test(horz_df$NumberofCredits, horz_df$TotalSemesterTimetoDegree, alternative = "less",  method="kendall")
+```
+
+Spearman's Correlation
+```{r}
+cor.test(horz_df$NumberofCredits, horz_df$TotalSemesterTimetoDegree, alternative = "less",  method="spearman")
+```
+
+
+
+##non-VCCS
+Kendall's Tau
+```{r}
+cor.test(no_vccs_df$NumberofCredits, no_vccs_df$TotalSemesterTimetoDegree, alternative = "less",  method="kendall")
+```
+
+Spearman's Correlation
+```{r}
+cor.test(no_vccs_df$NumberofCredits, no_vccs_df$TotalSemesterTimetoDegree, alternative = "less",  method="spearman")
 ```
 
 
 
 
+##VCCS
+Kendall's Tau
+```{r}
+cor.test(vccs_df$NumberofCredits, vccs_df$TotalSemesterTimetoDegree, alternative = "less",  method="kendall")
+```
 
-
+Spearman's Correlation
+```{r}
+cor.test(vccs_df$NumberofCredits, vccs_df$TotalSemesterTimetoDegree, alternative = "less",  method="spearman")
+```
 
 
 
